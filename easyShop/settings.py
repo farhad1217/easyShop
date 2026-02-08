@@ -131,7 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'family_login'
 CSRF_TRUSTED_ORIGINS = [
-    "easyshop.up.railway.app",
+    "https://easyshop.up.railway.app",
     "https://web-production-7b3f9.up.railway.app",
 ]
 
