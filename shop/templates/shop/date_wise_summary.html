@@ -1,0 +1,60 @@
+{% extends 'shop/base.html' %}
+{% block title %}তারিখ অনুযায়ী সারাংশ - EasyShop{% endblock %}
+{% block extra_css %}
+.summary-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.summary-admin .card { background: #374151; color: white; }
+.summary-admin h1, .summary-admin h2 { color: white; }
+.date-form { margin-bottom: 24px; }
+.date-form input { padding: 12px; border-radius: 8px; border: none; margin-right: 8px; }
+.date-form button { padding: 12px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; }
+.summary-actions { margin: 16px 0; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.summary-actions a, .summary-actions .btn-pdf { padding: 10px 18px; background: #374151; color: white; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 0.95rem; }
+.summary-actions a:hover, .summary-actions .btn-pdf:hover { background: #4b5563; }
+.list-block { background: #4b5563; padding: 20px; border-radius: 12px; margin-bottom: 16px; }
+.list-block .user { font-weight: 700; margin-bottom: 8px; }
+.list-block .user a { color: #93c5fd; text-decoration: none; }
+.list-block .user a:hover { text-decoration: underline; }
+.list-block .content { color: #d1d5db; }
+.list-block .meta-row { margin-top: 8px; font-size: 0.9rem; opacity: 0.8; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.comment-icon { color: #fbbf24; text-decoration: none; font-size: 1.2rem; }
+.comment-icon:hover { opacity: 0.9; }
+.back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
+@media (max-width: 600px) { .summary-actions { flex-direction: column; align-items: flex-start; } }
+{% endblock %}
+{% block content %}
+<div class="summary-admin">
+<div class="container">
+    <a href="{% url 'management_dashboard' %}" class="back-link">← ড্যাশবোর্ডে ফিরে যান</a>
+    <h1 style="margin-bottom: 24px;">📋 তারিখ অনুযায়ী সারাংশ</h1>
+    
+    <form method="get" action="{% url 'date_wise_summary' %}" class="date-form">
+        <label>তারিখ নির্বাচন করুন:</label>
+        <input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+        <button type="submit">দেখুন</button>
+    </form>
+
+    <h2 style="margin: 28px 0 8px 0;">{{ selected_date|date:"d F Y" }} - সমস্ত লিস্ট</h2>
+    <div class="summary-actions">
+        <a href="{% url 'date_wise_summary_pdf' %}?date={{ selected_date|date:'Y-m-d' }}">📄 পিডিএফ ডাউনলোড (সব তালিকা + ঠিকানা)</a>
+        <a href="{% url 'date_wise_consolidated' %}?date={{ selected_date|date:'Y-m-d' }}">📋 সম্মিলিত ভিউ (সব আইটেম একসাথে)</a>
+    </div>
+    
+    {% if lists %}
+    {% for list in lists %}
+    <div class="list-block">
+        <div class="user">
+            <a href="{% url 'user_profile_detail' list.family_id %}">{{ list.user_display_name }}</a>
+        </div>
+        <div class="content">{{ list.content|default:"-"|linebreaksbr }}</div>
+        <div class="meta-row">
+            <span>#{{ list.list_id }} | {{ list.get_status_display }} | {{ list.created_at|date:"H:i" }}</span>
+            <a href="{% url 'list_comment_thread' list.pk %}?back={{ request.get_full_path|urlencode }}" class="comment-icon" title="মন্তব্য/যোগাযোগ">💬</a>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="no-lists">এই তারিখে কোনো লিস্ট নেই।</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

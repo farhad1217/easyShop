@@ -1,0 +1,51 @@
+{% extends 'shop/base.html' %}
+{% block title %}বার্তা - {{ other_user.username }}{% endblock %}
+{% block extra_css %}
+.thread-msg { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.thread-msg .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
+.thread-msg .card { background: #374151; padding: 20px; border-radius: 12px; margin-bottom: 16px; }
+.thread-msg h1 { color: white; margin-bottom: 20px; }
+.msg-list { max-height: 400px; overflow-y: auto; margin-bottom: 20px; }
+.msg-bubble { padding: 12px 16px; border-radius: 12px; margin-bottom: 10px; max-width: 85%; }
+.msg-bubble.self { background: #2563eb; margin-left: auto; }
+.msg-bubble.other { background: #4b5563; }
+.msg-bubble .meta { font-size: 0.8rem; opacity: 0.9; margin-bottom: 4px; }
+.msg-bubble .body { word-break: break-word; }
+.msg-bubble img { max-width: 100%; border-radius: 8px; margin-top: 6px; }
+.msg-bubble a[href*="media/"] { color: #93c5fd; }
+.msg-form textarea { width: 100%; padding: 12px; border-radius: 8px; border: none; color: #1f2937; font-family: inherit; resize: vertical; min-height: 60px; }
+.msg-form label { display: block; color: #9ca3af; font-size: 0.9rem; margin-top: 8px; }
+.msg-form button { margin-top: 10px; padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; }
+@media (max-width: 600px) { .msg-bubble { max-width: 95%; } .thread-msg .container { padding: 0 16px; } }
+{% endblock %}
+{% block content %}
+<div class="thread-msg">
+<div class="container">
+    {% if user.is_staff %}<a href="{% url 'messaging_inbox' %}" class="back-link">← বার্তা তালিকায় ফিরে যান</a>{% else %}<a href="{% url 'family_dashboard' %}" class="back-link">← ড্যাশবোর্ডে ফিরে যান</a>{% endif %}
+    <h1>💬 {{ other_user.username }}</h1>
+    <div class="msg-list">
+        {% for m in messages %}
+        <div class="msg-bubble {% if m.sender_id == request.user.id %}self{% else %}other{% endif %}">
+            <div class="meta">{% if m.sender.is_staff %}প্রশাসক{% else %}{{ m.sender.username }}{% endif %} — {{ m.created_at|date:"d/m/Y H:i" }}{% if m.read_at and m.sender_id != request.user.id %} ✓ দেখা হয়েছে{% endif %}</div>
+            <div class="body">
+                {% if m.body %}{{ m.body|linebreaksbr }}{% endif %}
+                {% if m.image %}<img src="{{ m.image.url }}" alt="ছবি" style="max-width: 200px;">{% endif %}
+                {% if m.file %}<a href="{{ m.file.url }}" target="_blank">📎 ফাইল ডাউনলোড</a>{% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p style="color: #9ca3af;">কোনো বার্তা নেই। নিচে লিখে পাঠান।</p>
+        {% endfor %}
+    </div>
+    <div class="card msg-form">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.body }}
+            {{ form.image }}
+            {{ form.file }}
+            <button type="submit">পাঠান</button>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}

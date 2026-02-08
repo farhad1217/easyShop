@@ -1,0 +1,38 @@
+{% extends 'shop/base.html' %}
+{% block title %}সম্মিলিত ভিউ - {{ selected_date|date:"d/m/Y" }}{% endblock %}
+{% block extra_css %}
+.summary-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.summary-admin h1, .summary-admin h2 { color: white; }
+.back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
+.consolidated-actions { margin: 16px 0; }
+.consolidated-actions a { padding: 10px 18px; background: #374151; color: white; border-radius: 8px; text-decoration: none; }
+.consolidated-actions a:hover { background: #4b5563; }
+.merged-list { background: #374151; padding: 20px; border-radius: 12px; }
+.merged-list ul { list-style: none; padding: 0; margin: 0; }
+.merged-list li { padding: 8px 0; border-bottom: 1px solid #4b5563; color: #d1d5db; }
+.merged-list li:last-child { border-bottom: none; }
+@media (max-width: 600px) { .summary-admin .container { padding: 0 16px; } }
+{% endblock %}
+{% block content %}
+<div class="summary-admin">
+<div class="container">
+    <a href="{% url 'date_wise_summary' %}?date={{ selected_date|date:'Y-m-d' }}" class="back-link">← তারিখ অনুযায়ী সারাংশে ফিরে যান</a>
+    <h1 style="margin-bottom: 8px;">📋 সম্মিলিত বাজার পয়েন্ট</h1>
+    <p style="color: #9ca3af; margin-bottom: 16px;">{{ selected_date|date:"d F Y" }} - সব ব্যবহারকারীর আইটেম একত্রে (নাম ছাড়া)</p>
+    <div class="consolidated-actions">
+        <a href="{% url 'date_wise_consolidated_pdf' %}?date={{ selected_date|date:'Y-m-d' }}">📄 পিডিএফ ডাউনলোড</a>
+    </div>
+    {% if merged_items %}
+    <div class="merged-list" style="margin-top: 20px;">
+        <ul>
+            {% for item in merged_items %}
+            <li>{{ forloop.counter }}. {{ item }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <p style="color: #9ca3af; margin-top: 20px;">এই তারিখে কোনো আইটেম নেই।</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

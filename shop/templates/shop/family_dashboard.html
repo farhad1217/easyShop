@@ -1,0 +1,202 @@
+{% extends 'shop/base.html' %}
+{% block title %}বাজার লিস্ট - EasyShop{% endblock %}
+{% block content %}
+<div class="container family-dashboard">
+    <div class="family-header">
+        <div class="account-info">
+            <div class="avatar">👤</div>
+            <div>
+                <span class="label">আমার অ্যাকাউন্ট</span>
+                <span class="username">{{ user.username|upper }}</span>
+            </div>
+        </div>
+        <div class="header-icons">
+            <a href="{% url 'messaging_inbox' %}" class="icon-btn msg-icon-wrap" title="বার্তা">
+                💬
+                {% if unread_message_count %}<span class="msg-badge">{{ unread_message_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'user_logout' %}" class="icon-btn" title="লগআউট">🚪</a>
+        </div>
+    </div>
+
+    {% if notice and notice.content %}
+    <div class="notice-box card" style="margin-bottom: 20px; padding: 16px; background: #fef3c7; border-left: 4px solid var(--accent);">
+        <strong>📌 নোটিস:</strong> {{ notice.content|linebreaksbr }}
+    </div>
+    {% endif %}
+
+    <div class="market-list-section card">
+        <h2 class="section-title">বাজার লিস্ট</h2>
+        <p class="section-subtitle">আজ আপনার কী কী দরকার?</p>
+        <form method="post" action="{% url 'send_market_list' %}" class="list-form">
+            {% csrf_token %}
+            <div class="input-wrapper">
+                {{ form.content }}
+                <span class="sparkle-icon">✨</span>
+            </div>
+            <button type="submit" class="btn-send">
+                <span class="paper-plane">✈️</span> লিস্ট পাঠান
+            </button>
+        </form>
+    </div>
+
+    <div class="list-history">
+        <h3 class="history-title">লিস্ট হিস্টোরি</h3>
+        {% if lists %}
+        <div class="list-cards">
+            {% for list in lists %}
+            <div class="list-card">
+                <div class="list-card-main">
+                    <span class="list-icon">📄</span>
+                    <div class="list-info">
+                        <span class="list-id">#{{ list.list_id }}</span>
+                        <span class="list-content-preview">{{ list.content|truncatewords:8|default:"-" }}</span>
+                        <span class="list-date">{{ list.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <span class="status-badge status-{{ list.status }}">{{ list.get_status_display }}</span>
+                </div>
+                <div class="list-actions">
+                    {% if list.status == 'pending' %}
+                    <a href="{% url 'update_market_list' list.pk %}" class="action-btn edit-btn" title="আপডেট">✏️</a>
+                    {% endif %}
+                    <a href="{% url 'delete_market_list' list.pk %}" class="action-btn delete-btn" title="মুছুন" onclick="return confirm('লিস্ট মুছে ফেলবেন?');">🗑️</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-lists">এখনও কোনো লিস্ট নেই। উপরের ফিল্ডে লিখে লিস্ট পাঠান।</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.family-dashboard { max-width: 560px; margin: 0 auto; }
+.family-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+    padding: 12px 0;
+}
+.account-info { display: flex; align-items: center; gap: 12px; }
+.avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+}
+.account-info .label { display: block; font-size: 0.75rem; color: #6b7280; }
+.account-info .username { font-weight: 700; font-size: 1.1rem; }
+.header-icons { display: flex; gap: 12px; }
+.msg-icon-wrap { position: relative; }
+.msg-badge {
+    position: absolute; top: -4px; right: -4px;
+    background: #dc2626; color: white;
+    font-size: 0.7rem; min-width: 18px; height: 18px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+}
+.icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+}
+.market-list-section { padding: 28px; margin-bottom: 28px; }
+.section-title { font-size: 1.5rem; margin-bottom: 4px; }
+.section-subtitle { color: #6b7280; margin-bottom: 20px; font-size: 1rem; }
+.input-wrapper { position: relative; margin-bottom: 16px; }
+.input-wrapper textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 16px 48px 16px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+}
+.sparkle-icon {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    font-size: 1.2rem;
+}
+.btn-send {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-send:hover { background: var(--primary-dark); }
+.list-history { margin-top: 24px; }
+.history-title { margin-bottom: 16px; font-size: 1.2rem; }
+.list-cards { display: flex; flex-direction: column; gap: 12px; }
+.list-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.list-card-main { display: flex; align-items: center; gap: 12px; flex: 1; }
+.list-icon { font-size: 1.5rem; }
+.list-info { display: flex; flex-direction: column; gap: 2px; }
+.list-id { font-weight: 700; font-size: 0.9rem; }
+.list-content-preview { color: #4b5563; font-size: 0.95rem; }
+.list-date { font-size: 0.8rem; color: #9ca3af; }
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-pending { background: #f3f4f6; color: #4b5563; }
+.status-approved { background: #dbeafe; color: #1e40af; }
+.status-delivered { background: #d1fae5; color: #065f46; }
+.list-actions { display: flex; gap: 8px; }
+.action-btn { padding: 6px 10px; border-radius: 8px; text-decoration: none; }
+.edit-btn { background: #dbeafe; }
+.delete-btn { background: #fee2e2; }
+.no-lists { color: #6b7280; text-align: center; padding: 24px; }
+@media (max-width: 600px) {
+    .family-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .list-card-main { flex-wrap: wrap; }
+}
+</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function() {
+    var badge = document.querySelector('.msg-badge');
+    if (!badge) return;
+    function updateCount() {
+        fetch('{% url "message_unread_count" %}')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.unread > 0) {
+                    badge.textContent = d.unread;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
+    }
+    setInterval(updateCount, 20000);
+})();
+</script>
+{% endblock %}

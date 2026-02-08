@@ -1,0 +1,186 @@
+{% extends 'shop/base.html' %}
+{% block title %}এডমিন ড্যাশবোর্ড - EasyShop{% endblock %}
+{% block extra_css %}
+.admin-theme { background: #1f2937 !important; min-height: 100vh; }
+.admin-theme .container { max-width: 900px; }
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    color: white;
+}
+.admin-brand { display: flex; align-items: center; gap: 12px; }
+.admin-brand .icon { font-size: 1.8rem; }
+.admin-brand h1 { font-size: 1.2rem; margin: 0; }
+.admin-brand .sub { font-size: 0.85rem; opacity: 0.8; }
+.admin-header-icons a {
+    color: white;
+    margin-left: 16px;
+    text-decoration: none;
+    font-size: 1.2rem;
+}
+.filter-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.filter-card {
+    background: #374151;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+.filter-card:hover { background: #4b5563; }
+.filter-card.active { background: #2563eb; }
+.filter-card .count { font-size: 1.8rem; font-weight: 700; }
+.filter-card .label { font-size: 0.9rem; opacity: 0.9; }
+.nav-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.nav-card {
+    background: #374151;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.nav-card:hover { background: #4b5563; }
+.nav-card .nav-icon { font-size: 1.5rem; }
+.nav-card .nav-text h3 { margin: 0 0 4px 0; font-size: 1rem; }
+.nav-card .nav-text p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+.list-entry {
+    background: #374151;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.list-entry .user-date { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.list-entry .content { color: #d1d5db; margin: 8px 0; }
+.list-entry .actions { display: flex; gap: 8px; }
+.list-entry .action-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    font-size: 1.1rem;
+}
+.action-delete { background: #dc2626; color: white; }
+.action-approve { background: #2563eb; color: white; }
+.no-lists { color: #9ca3af; text-align: center; padding: 40px; }
+.notice-board textarea { width: 100%; padding: 12px; border-radius: 8px; border: none; color: #1f2937; font-family: inherit; resize: vertical; min-height: 80px; }
+@media (max-width: 600px) {
+    .filter-cards { grid-template-columns: 1fr; }
+    .list-entry { flex-direction: column; align-items: flex-start; gap: 12px; }
+}
+{% endblock %}
+{% block content %}
+<div class="admin-theme">
+<div class="container">
+    <nav style="background: transparent; box-shadow: none;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="{% url 'landing_page' %}" style="color: var(--primary);">EasyShop</a>
+            <a href="{% url 'user_logout' %}" style="color: var(--primary);">লগআউট</a>
+        </div>
+    </nav>
+
+    <div class="admin-header">
+        <div class="admin-brand">
+            <span class="icon">🛒</span>
+            <div>
+                <h1>এডমিন মোড</h1>
+                <span class="sub">সুপার এডমিন</span>
+            </div>
+        </div>
+        <div class="admin-header-icons">
+            <a href="{% url 'messaging_inbox' %}" title="বার্তা">💬</a>
+            <a href="{% url 'user_logout' %}" title="লগআউট">🚪</a>
+        </div>
+    </div>
+
+    <div class="notice-board" style="background: #374151; padding: 16px 20px; border-radius: 12px; margin-bottom: 24px;">
+        <h3 style="color: white; margin: 0 0 12px 0; font-size: 1rem;">📌 নোটিস বোর্ড (সব ব্যবহারকারীর প্রোফাইলে দেখাবে)</h3>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="notice">
+            {{ notice_form.content }}
+            <button type="submit" style="margin-top: 10px; padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer;">নোটিস সেভ করুন</button>
+        </form>
+    </div>
+
+    <div class="filter-cards">
+        <a href="?filter=total" class="filter-card {% if filter_status == 'total' %}active{% endif %}">
+            <div class="count">{{ total_count }}</div>
+            <div class="label">সর্বমোট</div>
+        </a>
+        <a href="?filter=approved" class="filter-card {% if filter_status == 'approved' %}active{% endif %}">
+            <div class="count">{{ approved_count }}</div>
+            <div class="label">অনুমোদিত</div>
+        </a>
+        <a href="?filter=pending" class="filter-card {% if filter_status == 'pending' %}active{% endif %}">
+            <div class="count">{{ pending_count }}</div>
+            <div class="label">পেন্ডিং</div>
+        </a>
+    </div>
+
+    <div class="nav-cards">
+        <a href="{% url 'date_wise_summary' %}" class="nav-card">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span class="nav-icon">📋</span>
+                <div class="nav-text">
+                    <h3>তারিখ অনুযায়ী সারাংশ</h3>
+                    <p>কনসোলিডেটেড ভিউ</p>
+                </div>
+            </div>
+            <span>→</span>
+        </a>
+        <a href="{% url 'user_directory' %}" class="nav-card">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span class="nav-icon">👥</span>
+                <div class="nav-text">
+                    <h3>ইউজার ডাইরেক্টরি</h3>
+                    <p>ফ্যামিলি মেম্বার প্রোফাইল</p>
+                </div>
+            </div>
+            <span>→</span>
+        </a>
+    </div>
+
+    <h3 style="color: white; margin-bottom: 16px;">লিস্ট এন্ট্রি</h3>
+    {% if lists %}
+    {% for list in lists %}
+    <div class="list-entry">
+        <div style="flex: 1;">
+            <div class="user-date">
+                <span>👤</span>
+                <a href="{% url 'user_profile_detail' list.family_id %}" style="color: white;">@{{ list.family.username }}</a>
+                <span>{{ list.created_at|date:"M d, Y" }}</span>
+                <a href="{% url 'messaging_thread' list.family_id %}" class="action-icon" style="background: #059669; color: white; margin-left: 8px;" title="বার্তা">💬</a>
+            </div>
+            <div class="content">{{ list.content|default:"-"|linebreaksbr }}</div>
+        </div>
+        <div class="actions">
+            {% if list.status == 'pending' %}
+            <a href="{% url 'admin_delete_list' list.pk %}" class="action-icon action-delete" title="মুছুন" onclick="return confirm('লিস্ট মুছবেন?');">🗑️</a>
+            <a href="{% url 'approve_list' list.pk %}" class="action-icon action-approve" title="অনুমোদন">👍</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="no-lists">কোনো লিস্ট নেই।</div>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

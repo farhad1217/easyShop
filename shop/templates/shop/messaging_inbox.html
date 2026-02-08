@@ -1,0 +1,33 @@
+{% extends 'shop/base.html' %}
+{% block title %}বার্তা - EasyShop{% endblock %}
+{% block extra_css %}
+.msg-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.msg-admin .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
+.msg-admin h1 { color: white; margin-bottom: 24px; }
+.conv-card {
+    background: #374151; padding: 20px; border-radius: 12px; margin-bottom: 12px;
+    display: block; color: white; text-decoration: none; transition: background 0.2s;
+}
+.conv-card:hover { background: #4b5563; }
+.conv-card .unread-badge { background: #dc2626; color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+@media (max-width: 600px) { .msg-admin .container { padding: 0 16px; } }
+{% endblock %}
+{% block content %}
+<div class="msg-admin">
+<div class="container">
+    <a href="{% url 'management_dashboard' %}" class="back-link">← ড্যাশবোর্ডে ফিরে যান</a>
+    <h1>💬 বার্তা (ব্যবহারকারীদের সাথে যোগাযোগ)</h1>
+    {% for item in conversations %}
+    <a href="{% url 'messaging_thread' item.conv.user_id %}" class="conv-card">
+        <span>👤 {{ item.conv.user.username }}</span>
+        {% if item.unread %}<span class="unread-badge">{{ item.unread }} নতুন</span>{% endif %}
+        {% if item.last_message %}
+        <div style="font-size: 0.9rem; color: #9ca3af; margin-top: 6px;">{{ item.last_message.body|truncatewords:10 }} — {{ item.last_message.created_at|date:"d/m H:i" }}</div>
+        {% endif %}
+    </a>
+    {% empty %}
+    <p style="color: #9ca3af;">কোনো কথোপকথন নেই।</p>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

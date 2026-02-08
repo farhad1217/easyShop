@@ -1,0 +1,45 @@
+{% extends 'shop/base.html' %}
+{% block title %}প্রোফাইল - {{ profile_user.username }}{% endblock %}
+{% block extra_css %}
+.profile-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.profile-admin .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
+.profile-admin .card { background: #374151; color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; }
+.profile-admin h1, .profile-admin h2 { color: white; }
+.detail-row { margin: 12px 0; }
+.detail-row strong { display: inline-block; width: 120px; }
+.list-history-item {
+    background: #4b5563;
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+.list-history-item .meta { font-size: 0.9rem; opacity: 0.8; margin-bottom: 8px; }
+{% endblock %}
+{% block content %}
+<div class="profile-admin">
+<div class="container">
+    <a href="{% url 'user_directory' %}" class="back-link">← ইউজার ডাইরেক্টরিতে ফিরে যান</a>
+    
+    <div class="card">
+        <h1>{% if profile %}{{ profile.display_name }}{% else %}{{ profile_user.username }}{% endif %} এর প্রোফাইল</h1>
+        <p style="margin-bottom: 12px;"><a href="{% url 'messaging_thread' profile_user.id %}" style="color: #60a5fa;">💬 এই ব্যবহারকারীর সাথে বার্তা পাঠান</a></p>
+        <div class="detail-row"><strong>ইউজারনেম:</strong> {{ profile_user.username }}</div>
+        <div class="detail-row"><strong>নাম:</strong> {% if profile %}{{ profile.display_name|default:"-" }}{% else %}-{% endif %}</div>
+        <div class="detail-row"><strong>ঠিকানা:</strong> {% if profile %}{{ profile.address|default:"-" }}{% else %}-{% endif %}</div>
+        <div class="detail-row"><strong>মোবাইল:</strong> {% if profile %}{{ profile.phone|default:"-" }}{% else %}-{% endif %}</div>
+    </div>
+
+    <h2 style="margin-bottom: 16px;">বাজার লিস্ট হিস্টোরি</h2>
+    {% if lists %}
+    {% for list in lists %}
+    <div class="list-history-item">
+        <div class="meta">#{{ list.list_id }} | {{ list.created_at|date:"d/m/Y H:i" }} | {{ list.get_status_display }}</div>
+        <div class="content">{{ list.content|default:"-"|linebreaksbr }}</div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color: #9ca3af;">এখনও কোনো বাজার লিস্ট দেওয়া হয়নি।</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

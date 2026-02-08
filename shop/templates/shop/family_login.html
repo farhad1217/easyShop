@@ -1,0 +1,26 @@
+{% extends 'shop/base.html' %}
+{% block title %}ফ্যামিলি লগইন - EasyShop{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 420px;">
+    <div class="card">
+        <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: var(--primary);">👨‍👩‍👧‍👦 ফ্যামিলি লগইন</h1>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">ইউজারনেম</label>
+                <input type="text" name="username" required style="width:100%; padding:12px 16px; border:2px solid #e5e7eb; border-radius:10px;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">পাসওয়ার্ড</label>
+                <input type="password" name="password" required style="width:100%; padding:12px 16px; border:2px solid #e5e7eb; border-radius:10px;">
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">লগইন</button>
+                <a href="{% url 'family_register' %}" class="btn btn-outline">রেজিষ্ট্রেশন</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

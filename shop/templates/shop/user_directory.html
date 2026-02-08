@@ -1,0 +1,46 @@
+{% extends 'shop/base.html' %}
+{% block title %}ইউজার ডাইরেক্টরি - EasyShop{% endblock %}
+{% block extra_css %}
+.dir-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.dir-admin .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
+.dir-admin h1 { color: white; margin-bottom: 24px; }
+.profile-card {
+    background: #374151;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    display: block;
+    color: white;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.profile-card:hover { background: #4b5563; }
+.profile-card .username { font-weight: 700; font-size: 1.1rem; }
+.profile-card .info { color: #d1d5db; font-size: 0.9rem; margin-top: 4px; }
+.profile-msg-btn { width: 44px; height: 44px; border-radius: 10px; background: #374151; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
+.profile-msg-btn:hover { background: #4b5563; }
+@media (max-width: 600px) { .dir-admin .container { padding: 0 16px; } }
+{% endblock %}
+{% block content %}
+<div class="dir-admin">
+<div class="container">
+    <a href="{% url 'management_dashboard' %}" class="back-link">← ড্যাশবোর্ডে ফিরে যান</a>
+    <h1>👥 ইউজার ডাইরেক্টরি</h1>
+    <p style="color: #9ca3af; margin-bottom: 24px;">সব রেজিষ্ট্রীকৃত ফ্যামিলি প্রোফাইল</p>
+
+    {% if profiles %}
+    {% for profile in profiles %}
+    <div class="profile-card-wrap" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <a href="{% url 'user_profile_detail' profile.user_id %}" class="profile-card" style="flex: 1;">
+            <div class="username">{{ profile.display_name }} (@{{ profile.user.username }})</div>
+            <div class="info">{{ profile.address|truncatewords:15 }} | {{ profile.phone }}</div>
+        </a>
+        <a href="{% url 'messaging_thread' profile.user_id %}" class="profile-msg-btn" title="বার্তা">💬</a>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="color: #9ca3af;">কোনো ইউজার প্রোফাইল নেই।</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}
