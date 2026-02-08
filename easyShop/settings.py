@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-s55vh$+egmzhi2=$&=s%p%t-00bnoxmx^qnul7lx_nvwl_0s)e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["web-production-7b3f9.up.railway.app"]
+ALLOWED_HOSTS = ["easyshop.up.railway.app"]
 
 
 # Application definition
@@ -131,6 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'family_login'
 CSRF_TRUSTED_ORIGINS = [
+    "easyshop.up.railway.app",
     "https://web-production-7b3f9.up.railway.app",
 ]
 
