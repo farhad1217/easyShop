@@ -130,3 +130,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'family_login'
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-7b3f9.up.railway.app",
+]
