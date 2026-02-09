@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-s55vh$+egmzhi2=$&=s%p%t-00bnoxmx^qnul7lx_nvwl_0s)e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["easyshop.up.railway.app"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition

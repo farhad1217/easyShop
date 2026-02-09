@@ -33,6 +33,7 @@ urlpatterns = [
     path('management/dashboard/', views.management_dashboard, name='management_dashboard'),
     path('management/date-summary/', views.date_wise_summary, name='date_wise_summary'),
     path('management/user-directory/', views.user_directory, name='user_directory'),
+    path('management/delivery/', views.delivery, name='delivery'),
     path('management/user/<int:user_id>/', views.user_profile_detail, name='user_profile_detail'),
     path('management/approve/<int:pk>/', views.approve_list, name='approve_list'),
     path('management/delete/<int:pk>/', views.admin_delete_list, name='admin_delete_list'),

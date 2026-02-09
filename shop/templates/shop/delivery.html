@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Management - Classic Generic System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        .rotate-icon { transition: transform 0.3s ease; }
+        .active .rotate-icon { transform: rotate(180deg); }
+        .modal-animate { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .gallery-stack { display: flex; flex-direction: column; gap: 20px; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div class="max-w-2xl mx-auto mt-8 px-4 space-y-4">
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white rounded-3xl shadow-lg border border-green-100 overflow-hidden">
+                <div onclick="toggleCollapse('delivered-container', this, 'archive', 'delivered')" class="p-5 cursor-pointer hover:bg-green-50 transition-all text-center">
+                    <div class="bg-green-100 text-green-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-sm">
+                        <i class="fas fa-check-double text-xl"></i>
+                    </div>
+                    <h2 class="text-sm font-black text-gray-800 uppercase tracking-tight text-center">Delivered</h2>
+                    <div class="flex justify-center"><span class="text-[10px] font-bold bg-green-600 text-white px-3 py-0.5 rounded-full mt-1" id="delivered-count-badge">0</span></div>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl shadow-lg border border-red-100 overflow-hidden">
+                <div onclick="toggleCollapse('declined-container', this, 'archive', 'declined')" class="p-5 cursor-pointer hover:bg-red-50 transition-all text-center">
+                    <div class="bg-red-100 text-red-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-sm">
+                        <i class="fas fa-times-circle text-xl"></i>
+                    </div>
+                    <h2 class="text-sm font-black text-gray-800 uppercase tracking-tight text-center">Declined</h2>
+                    <div class="flex justify-center"><span class="text-[10px] font-bold bg-red-600 text-white px-3 py-0.5 rounded-full mt-1" id="declined-count-badge">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="delivered-container" class="hidden bg-white rounded-[2rem] p-5 shadow-inner border border-slate-100 space-y-3">
+            <div id="delivered-list-wrapper" class="space-y-3"></div>
+        </div>
+        <div id="declined-container" class="hidden bg-white rounded-[2rem] p-5 shadow-inner border border-slate-100 space-y-3">
+            <div id="declined-list-wrapper" class="space-y-3"></div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-100 border border-white overflow-hidden mt-6">
+            <div onclick="toggleCollapse('area-container', this, 'area')" id="main-area-btn" class="flex justify-between items-center p-7 cursor-pointer hover:bg-slate-50 transition-all border-l-[12px] border-indigo-600">
+                <div class="flex items-center gap-5">
+                    <div class="bg-indigo-600 text-white p-4 rounded-3xl shadow-lg shadow-indigo-100"><i class="fas fa-map-marker-alt text-2xl"></i></div>
+                    <div><h2 class="text-2xl font-black text-gray-800 uppercase leading-none">Kula Para</h2><p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Pending Orders</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="bg-indigo-600 text-white px-5 py-2 rounded-2xl font-black text-sm" id="area-total-badge">0</span>
+                    <i class="fas fa-chevron-down text-gray-300 rotate-icon"></i>
+                </div>
+            </div>
+            <div id="area-container" class="hidden border-t bg-slate-50/50 p-5 space-y-5"><div id="sections-wrapper" class="space-y-5"></div></div>
+        </div>
+    </div>
+
+    <div id="pathway-modal" class="fixed inset-0 z-[400] hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl modal-animate flex flex-col max-h-[90vh]">
+            <div class="bg-slate-800 p-6 text-white flex justify-between items-center flex-shrink-0">
+                <h3 id="pathway-title" class="font-bold uppercase text-xs tracking-widest italic">Pathway Gallery</h3>
+                <div class="flex items-center gap-3">
+                    <label class="bg-indigo-600 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer active:scale-90 shadow-lg"><i class="fas fa-images"></i><input type="file" class="hidden" multiple accept="image/*" onchange="handleImageUpload(event)" /></label>
+                    <label class="bg-green-600 w-10 h-10 rounded-full flex items-center justify-center cursor-pointer active:scale-90 shadow-lg"><i class="fas fa-camera"></i><input type="file" class="hidden" capture="environment" accept="image/*" onchange="handleImageUpload(event)" /></label>
+                    <button onclick="closeModal('pathway-modal')" class="bg-white/10 w-10 h-10 rounded-full flex items-center justify-center"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow bg-slate-50"><div id="gallery-container" class="gallery-stack"></div></div>
+            <div class="p-6 bg-white border-t"><button onclick="saveAndCloseGallery()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl text-[10px] uppercase shadow-lg">Save Permanently</button></div>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="fixed inset-0 z-[500] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl modal-animate border border-white">
+            <div id="confirm-icon-bg" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><i id="confirm-icon" class="fas text-2xl"></i></div>
+            <h3 id="confirm-title" class="text-xl font-bold text-gray-800 mb-2 tracking-tight"></h3>
+            <p id="confirm-msg" class="text-gray-500 text-sm mb-8 font-bold"></p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('confirm-modal')" class="flex-1 bg-gray-100 text-gray-500 font-bold py-4 rounded-2xl uppercase text-[10px]">No</button>
+                <button id="confirm-yes-btn" class="flex-1 text-white font-bold py-4 rounded-2xl shadow-lg uppercase text-[10px]">Yes</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="replace-gallery" class="hidden" accept="image/*" onchange="processReplacement(event)">
+    <input type="file" id="replace-camera" class="hidden" capture="environment" accept="image/*" onchange="processReplacement(event)">
+
+    <script>
+        let openStates = { area: false, archives: {}, sections: {}, buildings: {} };
+        let pathwayData = JSON.parse(localStorage.getItem('savedPathways')) || {};
+        
+        let deliveryData = [
+            { 
+                name: "Section 1", 
+                buildings: [
+                    { 
+                        name: "Karim Building", id: "s1b1", 
+                        orders: [
+                            { id: 101, name: "Sifat Ahmed", phone: "01712-445566", pack: "34", floor: "3rd", room: "302", bazar: ["Rice 5kg", "Soyabean Oil 2L", "Onion 2kg"] }
+                        ] 
+                    }
+                ] 
+            },
+            { 
+                name: "Section 2", 
+                buildings: [
+                    { 
+                        name: "Building A", id: "s2b1", 
+                        orders: [
+                            { id: 102, name: "Tanvir Hasan", phone: "01819-112233", pack: "12", floor: "1st", room: "105", bazar: ["Salt 1kg", "Sugar 2kg"] }
+                        ] 
+                    }
+                ] 
+            }
+        ];
+
+        let deliveredList = [], declinedList = [], currentPathwayKey = null, currentReplaceIdx = null;
+
+        function toggleCollapse(id, el, type, key) {
+            const isHidden = document.getElementById(id).classList.toggle('hidden');
+            if (el) el.classList.toggle('active');
+            if (type === 'area') openStates.area = !isHidden;
+            if (type === 'archive') openStates.archives[key] = !isHidden;
+            if (type === 'sec') openStates.sections[key] = !isHidden;
+            if (type === 'build') openStates.buildings[key] = !isHidden;
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function getPathwayInfo(key) {
+            const hasData = pathwayData[key] && pathwayData[key].length > 0;
+            return {
+                text: hasData ? "Pathway Ready" : "Pathway Empty",
+                color: hasData ? "bg-green-100 text-green-700" : "bg-indigo-50 text-indigo-600",
+                icon: hasData ? "fa-check-circle" : "fa-road"
+            };
+        }
+
+        function askAction(s, b, o, type) {
+            const modal = document.getElementById('confirm-modal');
+            const btn = document.getElementById('confirm-yes-btn');
+            modal.classList.remove('hidden');
+            document.getElementById('confirm-title').innerText = type === 'done' ? 'Deliver Order?' : 'Decline Order?';
+            document.getElementById('confirm-msg').innerText = `Confirm this as ${type === 'done' ? 'Delivered' : 'Declined'}?`;
+            document.getElementById('confirm-icon-bg').className = `w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${type === 'done' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`;
+            document.getElementById('confirm-icon').className = `fas ${type === 'done' ? 'fa-check' : 'fa-times'}`;
+            btn.className = `flex-1 text-white font-bold py-4 rounded-2xl shadow-lg uppercase text-[10px] ${type === 'done' ? 'bg-green-600' : 'bg-red-600'}`;
+            btn.onclick = () => {
+                const order = deliveryData[s].buildings[b].orders.splice(o, 1)[0];
+                order.origPos = {s, b};
+                if(type === 'done') deliveredList.push(order); else declinedList.push(order);
+                closeModal('confirm-modal'); renderUI();
+            };
+        }
+
+        function restoreOrder(idx, type) {
+            const list = type === 'done' ? deliveredList : declinedList;
+            const order = list.splice(idx, 1)[0];
+            deliveryData[order.origPos.s].buildings[order.origPos.b].orders.push(order);
+            renderUI();
+        }
+
+        function openPathway(key, name) { currentPathwayKey = key; document.getElementById('pathway-title').innerText = name; document.getElementById('pathway-modal').classList.remove('hidden'); renderGallery(); }
+        function handleImageUpload(e) { if(!pathwayData[currentPathwayKey]) pathwayData[currentPathwayKey] = []; Array.from(e.target.files).forEach(f => { let r = new FileReader(); r.onload=(ev)=>{pathwayData[currentPathwayKey].push(ev.target.result); renderGallery();}; r.readAsDataURL(f); }); e.target.value = ""; }
+        function triggerReplace(idx, mode) { currentReplaceIdx = idx; document.getElementById(mode === 'cam' ? 'replace-camera' : 'replace-gallery').click(); }
+        function processReplacement(e) { if(e.target.files[0] && currentReplaceIdx !== null){ let r = new FileReader(); r.onload=(ev)=>{pathwayData[currentPathwayKey][currentReplaceIdx]=ev.target.result; renderGallery();}; r.readAsDataURL(e.target.files[0]); } e.target.value = ""; }
+        function deleteImg(idx) { if(confirm("Delete photo?")) { pathwayData[currentPathwayKey].splice(idx,1); renderGallery(); } }
+        function renderGallery() { const c = document.getElementById('gallery-container'); const imgs = pathwayData[currentPathwayKey] || []; c.innerHTML = imgs.length ? imgs.map((img, idx) => `<div class="bg-white p-3 rounded-[2rem] border shadow-sm"><img src="${img}" class="w-full h-auto rounded-[1.5rem] mb-3"/><div class="flex justify-between px-2"><span class="bg-slate-800 text-white text-[10px] px-3 py-1 rounded-full">#${idx+1}</span><div class="flex gap-2"><button onclick="triggerReplace(${idx},'gal')" class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-images text-[10px]"></i></button><button onclick="triggerReplace(${idx},'cam')" class="bg-green-100 text-green-600 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-camera text-[10px]"></i></button><button onclick="deleteImg(${idx})" class="bg-red-50 text-red-500 w-8 h-8 rounded-full flex items-center justify-center"><i class="fas fa-trash-alt text-[10px]"></i></button></div></div></div>`).join('') : '<p class="text-center py-10 text-slate-300 uppercase text-[10px] font-bold">No Photos</p>'; }
+        function saveAndCloseGallery() { localStorage.setItem('savedPathways', JSON.stringify(pathwayData)); closeModal('pathway-modal'); renderUI(); }
+
+        function renderUI() {
+            if (openStates.area) document.getElementById('area-container').classList.remove('hidden');
+            if (openStates.archives['delivered']) document.getElementById('delivered-container').classList.remove('hidden');
+            if (openStates.archives['declined']) document.getElementById('declined-container').classList.remove('hidden');
+
+            const wrapper = document.getElementById('sections-wrapper'); wrapper.innerHTML = '';
+            let total = 0;
+
+            deliveryData.forEach((sec, sIdx) => {
+                let sTotal = 0; sec.buildings.forEach(b => sTotal += b.orders.length);
+                total += sTotal; if(sTotal === 0 && !openStates.sections[`sec-${sIdx}`]) return;
+                const sKey = `sec-${sIdx}`, isSecOpen = openStates.sections[sKey];
+                const sInfo = getPathwayInfo(sKey);
+
+                wrapper.innerHTML += `
+                    <div class="bg-white border rounded-[2rem] overflow-hidden shadow-sm transition-all mb-4">
+                        <div class="flex items-center p-5 justify-between border-b bg-white">
+                            <div onclick="toggleCollapse('${sKey}', null, 'sec', '${sKey}')" class="flex-grow cursor-pointer flex items-center gap-3"><i class="fas fa-folder text-amber-400"></i><span class="font-bold text-slate-700">${sec.name}</span><span class="bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded-lg font-black">${sTotal}</span></div>
+                            <button onclick="openPathway('${sKey}', '${sec.name}')" class="${sInfo.color} px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all active:scale-95 shadow-sm"><i class="fas ${sInfo.icon} mr-1.5 opacity-70"></i> ${sInfo.text}</button>
+                        </div>
+                        <div id="${sKey}" class="${isSecOpen ? '' : 'hidden'} p-4 bg-slate-50 space-y-4">
+                            ${sec.buildings.map((build, bIdx) => {
+                                const bKey = build.id; const isBuildOpen = openStates.buildings[bKey]; const bInfo = getPathwayInfo(bKey);
+                                return build.orders.length ? `
+                                <div class="bg-white border border-blue-100 rounded-[1.8rem] overflow-hidden shadow-sm">
+                                    <div class="flex justify-between items-center p-4 bg-white">
+                                        <div onclick="toggleCollapse('${bKey}', this, 'build', '${bKey}')" class="flex-grow cursor-pointer flex items-center gap-2 ${isBuildOpen ? 'active' : ''}"><span class="text-sm font-bold text-blue-900 leading-none">${build.name}</span><span class="bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-[10px] font-black">${build.orders.length}</span></div>
+                                        <button onclick="openPathway('${bKey}', '${build.name}')" class="${bInfo.color} px-3 py-2 rounded-xl text-[8.5px] font-black uppercase tracking-tighter"><i class="fas ${bInfo.icon} mr-1 opacity-70"></i> ${bInfo.text}</button>
+                                    </div>
+                                    <div id="${bKey}" class="${isBuildOpen ? '' : 'hidden'} p-4 space-y-4 border-t bg-white">
+                                        ${build.orders.map((o, oIdx) => `
+                                            <div class="bg-slate-50 p-5 rounded-[2.2rem] border border-slate-100 shadow-inner transition-all hover:bg-slate-100">
+                                                <div class="flex justify-between items-start mb-2"><h4 class="font-black text-slate-800 text-sm leading-none">${o.name}</h4><span class="text-[8px] font-black bg-red-100 text-red-600 px-2.5 py-1 rounded-lg border border-red-50 uppercase tracking-widest">Pack-${o.pack}</span></div>
+                                                <p class="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-widest leading-none"><i class="fa fa-phone mr-1 text-green-500"></i> ${o.phone}</p>
+                                                
+                                                <div class="grid grid-cols-2 gap-3 mb-4 text-center">
+                                                    <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[8px] text-slate-300 font-bold uppercase leading-none mb-1 text-center">Floor</p><p class="text-xs font-black text-slate-700">${o.floor}</p></div>
+                                                    <div class="bg-white p-2 rounded-2xl border border-slate-100 shadow-sm"><p class="text-[8px] text-slate-300 font-bold uppercase leading-none mb-1 text-center">Room</p><p class="text-xs font-black text-slate-700">${o.room}</p></div>
+                                                </div>
+
+                                                <div class="bg-white/80 p-4 rounded-2xl border border-slate-200 mb-4">
+                                                    <h5 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1"><i class="fas fa-shopping-basket text-amber-500"></i> Bazar List</h5>
+                                                    <div class="space-y-1.5">
+                                                        ${o.bazar.map(item => `<div class="flex items-center gap-2 text-[11px] font-bold text-slate-700"><div class="w-1.5 h-1.5 rounded-full bg-amber-400"></div>${item}</div>`).join('')}
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-2 gap-2"><button onclick="askAction(${sIdx},${bIdx},${oIdx},'done')" class="bg-green-600 text-white font-bold py-3.5 rounded-2xl text-[9px] uppercase shadow-lg shadow-green-100 active:scale-95 transition-all">Deliver</button><button onclick="askAction(${sIdx},${bIdx},${oIdx},'fail')" class="bg-red-600 text-white font-bold py-3.5 rounded-2xl text-[9px] uppercase shadow-lg shadow-red-100 active:scale-95 transition-all">Decline</button></div>
+                                            </div>`).join('')}
+                                    </div>
+                                </div>` : '';
+                            }).join('')}
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('area-total-badge').innerText = total;
+            document.getElementById('delivered-count-badge').innerText = deliveredList.length;
+            document.getElementById('declined-count-badge').innerText = declinedList.length;
+
+            const renderArc = (list, wrapId, type) => {
+                const w = document.getElementById(wrapId);
+                w.innerHTML = list.length ? list.map((o, idx) => `<div class="bg-white p-4 rounded-2xl border border-slate-100 flex justify-between items-center shadow-sm mb-2"><div><h4 class="font-bold text-slate-800 text-xs leading-none mb-1">${o.name}</h4><p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest">${o.phone}</p></div><button onclick="restoreOrder(${idx},'${type}')" class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:bg-indigo-600 hover:text-white shadow-sm"><i class="fas fa-undo-alt text-[10px]"></i></button></div>`).join('') : '<p class="text-center text-slate-300 py-4 text-[10px] uppercase font-bold tracking-widest">No History</p>';
+            };
+            renderArc(deliveredList, 'delivered-list-wrapper', 'done');
+            renderArc(declinedList, 'declined-list-wrapper', 'fail');
+        }
+        renderUI();
+    </script>
+</body>
+</html>

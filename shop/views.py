@@ -438,4 +438,9 @@ def message_unread_count(request):
     return JsonResponse({'unread': count})
 
 
+#delivery section
+def delivery(request):
+    return render(request, "shop/delivery.html")
+
+
 # --- Notice (already in dashboard; update via management_dashboard form)
