@@ -23,10 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-s55vh$+egmzhi2=$&=s%p%t-00bnoxmx^qnul7lx_nvwl_0s)e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ["https://easyshop.up.railway.app/"]
+ALLOWED_HOSTS = ["easyshop.up.railway.app"]
+
+CSRF_TRUSTED_ORIGINS = ["https://easyshop.up.railway.app"]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 
 # Application definition
