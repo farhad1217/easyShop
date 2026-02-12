@@ -1,0 +1,139 @@
+{% extends 'shop/base.html' %}
+{% load shop_extras %}
+{% block title %}User View - EasyShop{% endblock %}
+{% block extra_css %}
+.user-view-admin { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%); min-height: 100vh; background-attachment: fixed; color: white; padding: 24px 0; }
+.user-view-admin h1, .user-view-admin h2 { color: white; }
+.uv-back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; text-decoration: none; }
+.uv-back-link:hover { text-decoration: underline; }
+.uv-filter-tabs { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.uv-filter-tabs a {
+    padding: 10px 18px;
+    background: #374151;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.uv-filter-tabs a:hover { background: #4b5563; }
+.uv-filter-tabs a.active { background: #6366f1; }
+.uv-user-list { list-style: none; padding: 0; margin: 0; }
+.uv-user-item { margin-bottom: 12px; }
+.uv-user-click {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #374151;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.uv-user-click:hover { background: #4b5563; }
+.uv-user-click .name { flex: 1; font-weight: 600; font-size: 1rem; }
+.uv-user-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 10px;
+    background: #8b5cf6;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 800;
+    border-radius: 9999px;
+}
+.uv-user-chevron {
+    font-size: 0.75rem;
+    transition: transform 0.25s ease;
+}
+.uv-user-item.open .uv-user-chevron { transform: rotate(180deg); }
+.uv-lists-dropdown {
+    margin: 8px 0 0 0;
+    padding: 16px 20px;
+    background: #1f2937;
+    border-radius: 10px;
+    border: 1px solid #4b5563;
+    display: none;
+}
+.uv-lists-dropdown.show { display: block; }
+.uv-list-item {
+    background: #374151;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #4b5563;
+}
+.uv-list-item:last-child { margin-bottom: 0; }
+.uv-list-item .meta {
+    font-size: 0.9rem;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+.uv-list-item .meta a { color: #60a5fa; text-decoration: none; }
+.uv-list-item .meta a:hover { text-decoration: underline; }
+.uv-list-item .content { color: #d1d5db; white-space: pre-wrap; font-size: 0.9rem; }
+.uv-empty { color: #9ca3af; margin-top: 24px; }
+.uv-datetime {
+    display: inline-block;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+{% endblock %}
+{% block content %}
+<div class="user-view-admin">
+<div class="container">
+    <a href="{% url 'management_dashboard' %}?filter={{ filter_status }}" class="uv-back-link">← লিস্ট এন্ট্রিতে ফিরে যান</a>
+    <h1 style="margin-bottom: 8px;">👤 User View</h1>
+    <p style="color: #9ca3af; margin-bottom: 16px;">বাজার লিস্ট ইউজার অনুযায়ী। ইউজার ক্লিক করুন বাজার লিস্ট দেখতে।</p>
+    <div class="uv-filter-tabs">
+        <a href="?filter=total" class="active">Total Order Received</a>
+    </div>
+    {% if users_list %}
+    <ul class="uv-user-list">
+        {% for u in users_list %}
+        <li class="uv-user-item">
+            <span class="uv-user-click" tabindex="0">
+                <span class="name">{{ u.display_name }}</span>
+                <span class="uv-user-badge">{{ u.count }}</span>
+                <span class="uv-user-chevron">▼</span>
+            </span>
+            <div class="uv-lists-dropdown">
+                {% for lst in u.lists %}
+                <div class="uv-list-item">
+                    <div class="meta">
+                        <a href="{% url 'user_profile_detail' u.user_id %}">{{ lst.list_id }}</a>
+                        · <span class="uv-datetime">{{ lst.created_at|date_card }}</span> · {{ lst.status }}
+                    </div>
+                    <div class="content">{{ lst.ai_content|default:lst.content|default:"-"|linebreaksbr }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="uv-empty">কোনো লিস্ট নেই।</p>
+    {% endif %}
+</div>
+</div>
+<script>
+(function() {
+    document.querySelectorAll('.uv-user-click').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var item = btn.closest('.uv-user-item');
+            var dd = item && item.querySelector('.uv-lists-dropdown');
+            if (!dd) return;
+            dd.classList.toggle('show');
+            item.classList.toggle('open');
+        });
+    });
+})();
+</script>
+{% endblock %}

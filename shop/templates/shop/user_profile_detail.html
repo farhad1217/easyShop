@@ -1,44 +1,207 @@
 {% extends 'shop/base.html' %}
+{% load shop_extras %}
 {% block title %}প্রোফাইল - {{ profile_user.username }}{% endblock %}
 {% block extra_css %}
-.profile-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
-.profile-admin .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
-.profile-admin .card { background: #374151; color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; }
-.profile-admin h1, .profile-admin h2 { color: white; }
-.detail-row { margin: 12px 0; }
-.detail-row strong { display: inline-block; width: 120px; }
-.list-history-item {
-    background: #4b5563;
-    padding: 16px;
-    border-radius: 10px;
-    margin-bottom: 12px;
+.profile-page {
+    background: linear-gradient(165deg, #0f172a 0%, #1e293b 35%, #1f2937 70%, #0f172a 100%);
+    min-height: 100vh;
+    background-attachment: fixed;
+    color: white;
+    padding: 0 0 48px 0;
 }
-.list-history-item .meta { font-size: 0.9rem; opacity: 0.8; margin-bottom: 8px; }
+.profile-page .container { max-width: 560px; margin: 0 auto; padding: 0 20px; }
+
+/* Back */
+.profile-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(55, 65, 81, 0.9);
+    border-radius: 12px;
+    color: #60a5fa;
+    text-decoration: none;
+    margin: 20px 0 16px 0;
+    transition: all 0.2s;
+    border: 1px solid rgba(75, 85, 99, 0.6);
+}
+.profile-back:hover { background: #374151; color: #93c5fd; }
+
+/* Hero: Avatar + Name at top */
+.profile-hero {
+    text-align: center;
+    padding: 24px 0 32px 0;
+}
+.profile-avatar-wrap {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px auto;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid rgba(96, 165, 250, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: #374151;
+}
+.profile-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.profile-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+}
+.profile-hero h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f3f4f6;
+    letter-spacing: -0.02em;
+}
+
+/* Info list */
+.profile-card {
+    background: rgba(55, 65, 81, 0.6);
+    border-radius: 16px;
+    border: 1px solid rgba(75, 85, 99, 0.6);
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+.profile-card-title {
+    padding: 14px 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    background: rgba(31, 41, 55, 0.5);
+    border-bottom: 1px solid rgba(75, 85, 99, 0.5);
+}
+.profile-info-list { list-style: none; padding: 0; margin: 0; }
+.profile-info-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(75, 85, 99, 0.4);
+    font-size: 0.95rem;
+}
+.profile-info-list li:last-child { border-bottom: none; }
+.profile-info-list .info-label {
+    flex: 0 0 100px;
+    font-size: 0.85rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+.profile-info-list .info-val {
+    flex: 1;
+    color: #f3f4f6;
+    word-break: break-word;
+}
+.profile-info-list .info-val.empty { color: #6b7280; font-style: italic; }
+
+/* List history */
+.profile-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin: 0 0 14px 0;
+    padding: 0 4px;
+}
+.list-history-item {
+    background: rgba(55, 65, 81, 0.6);
+    padding: 18px 20px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(75, 85, 99, 0.5);
+    transition: background 0.2s;
+}
+.list-history-item:hover { background: rgba(55, 65, 81, 0.85); }
+.list-history-item .meta {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.list-datetime-detail {
+    display: inline-block;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+.list-history-item .content {
+    color: #d1d5db;
+    white-space: pre-wrap;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.profile-no-lists { color: #9ca3af; padding: 20px; text-align: center; font-size: 0.95rem; }
 {% endblock %}
 {% block content %}
-<div class="profile-admin">
+<div class="profile-page">
 <div class="container">
-    <a href="{% url 'user_directory' %}" class="back-link">← ইউজার ডাইরেক্টরিতে ফিরে যান</a>
-    
-    <div class="card">
-        <h1>{% if profile %}{{ profile.display_name }}{% else %}{{ profile_user.username }}{% endif %} এর প্রোফাইল</h1>
-        <p style="margin-bottom: 12px;"><a href="{% url 'messaging_thread' profile_user.id %}" style="color: #60a5fa;">💬 এই ব্যবহারকারীর সাথে বার্তা পাঠান</a></p>
-        <div class="detail-row"><strong>ইউজারনেম:</strong> {{ profile_user.username }}</div>
-        <div class="detail-row"><strong>নাম:</strong> {% if profile %}{{ profile.display_name|default:"-" }}{% else %}-{% endif %}</div>
-        <div class="detail-row"><strong>ঠিকানা:</strong> {% if profile %}{{ profile.address|default:"-" }}{% else %}-{% endif %}</div>
-        <div class="detail-row"><strong>মোবাইল:</strong> {% if profile %}{{ profile.phone|default:"-" }}{% else %}-{% endif %}</div>
+    <a href="{% url 'user_directory' %}" class="profile-back" title="Delivery Path setup এ ফিরে যান">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </a>
+
+    <div class="profile-hero">
+        <div class="profile-avatar-wrap">
+            {% if profile and profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="">
+            {% else %}
+            <div class="profile-avatar-placeholder">👤</div>
+            {% endif %}
+        </div>
+        <h1>{% if profile %}{{ profile.display_name }}{% else %}{{ profile_user.username }}{% endif %}</h1>
     </div>
 
-    <h2 style="margin-bottom: 16px;">বাজার লিস্ট হিস্টোরি</h2>
+    <div class="profile-card">
+        <div class="profile-card-title">প্রোফাইল তথ্য</div>
+        <ul class="profile-info-list">
+            <li>
+                <span class="info-label">নাম</span>
+                <span class="info-val {% if not profile or not profile.display_name %}empty{% endif %}">{% if profile %}{{ profile.display_name|default:"—" }}{% else %}—{% endif %}</span>
+            </li>
+            <li>
+                <span class="info-label">ঠিকানা</span>
+                <span class="info-val {% if not profile or not profile.address %}empty{% endif %}">{% if profile %}{{ profile.address|default:"—" }}{% else %}—{% endif %}</span>
+            </li>
+            <li>
+                <span class="info-label">মোবাইল</span>
+                <span class="info-val {% if not profile or not profile.phone %}empty{% endif %}">{% if profile %}{{ profile.phone|default:"—" }}{% else %}—{% endif %}</span>
+            </li>
+            {% if profile and profile.delivery_path_display %}
+            <li>
+                <span class="info-label">ডেলিভারি পাথ</span>
+                <span class="info-val">{{ profile.delivery_path_display }}</span>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <h2 class="profile-section-title">বাজার লিস্ট হিস্টোরি</h2>
     {% if lists %}
     {% for list in lists %}
     <div class="list-history-item">
-        <div class="meta">#{{ list.list_id }} | {{ list.created_at|date:"d/m/Y H:i" }} | {{ list.get_status_display }}</div>
-        <div class="content">{{ list.content|default:"-"|linebreaksbr }}</div>
+        <div class="meta">{{ list.list_id }} · <span class="list-datetime-detail">{{ list.created_at|date_card }}</span> · {{ list.note|default:list.get_status_display }}</div>
+        <div class="content">{{ list.content|default:"—"|linebreaksbr }}</div>
     </div>
     {% endfor %}
     {% else %}
-    <p style="color: #9ca3af;">এখনও কোনো বাজার লিস্ট দেওয়া হয়নি।</p>
+    <p class="profile-no-lists">এখনও কোনো বাজার লিস্ট দেওয়া হয়নি।</p>
     {% endif %}
 </div>
 </div>

@@ -1,7 +1,51 @@
+{% if embed %}
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মন্তব্য - {{ market_list.list_id }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Hind Siliguri', sans-serif; background: #374151; color: white; padding: 16px; font-size: 0.95rem; }
+        .card { background: #4b5563; padding: 16px; border-radius: 10px; margin-bottom: 12px; }
+        .comment-item { background: #4b5563; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; }
+        .comment-item .author { font-weight: 700; margin-bottom: 4px; }
+        .comment-item .time { font-size: 0.85rem; opacity: 0.8; }
+        textarea { width: 100%; padding: 12px; border-radius: 8px; border: none; font-family: inherit; resize: vertical; min-height: 70px; }
+        button { margin-top: 10px; padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <strong>{{ market_list.list_id }} - মন্তব্য</strong>
+        <p style="color: #d1d5db; margin-top: 6px; font-size: 0.9rem;">{{ market_list.content|truncatewords:15|default:"-" }}</p>
+    </div>
+    {% for c in comments %}
+    <div class="comment-item">
+        <div class="author">{% if c.author.is_staff %}প্রশাসক{% else %}{{ c.author.username }}{% endif %}</div>
+        <div class="time">{{ c.created_at|date:"d/m/Y H:i" }}</div>
+        <div style="margin-top: 6px;">{{ c.body|linebreaksbr }}</div>
+    </div>
+    {% empty %}
+    <p style="color: #9ca3af; margin-bottom: 12px;">এখনও কোনো মন্তব্য নেই।</p>
+    {% endfor %}
+    <div class="card">
+        <form method="post" action="?embed=1">
+            {% csrf_token %}
+            {{ form.body }}
+            {% if form.body.errors %}<div style="color: #f87171; margin-top: 4px;">{{ form.body.errors.0 }}</div>{% endif %}
+            <button type="submit">মন্তব্য পাঠান</button>
+        </form>
+    </div>
+</body>
+</html>
+{% else %}
 {% extends 'shop/base.html' %}
-{% block title %}মন্তব্য - #{{ market_list.list_id }}{% endblock %}
+{% block title %}মন্তব্য - {{ market_list.list_id }}{% endblock %}
 {% block extra_css %}
-.thread-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
+.thread-admin { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%); min-height: 100vh; background-attachment: fixed; color: white; padding: 24px 0; }
 .thread-admin .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
 .thread-admin .card { background: #374151; padding: 20px; border-radius: 12px; margin-bottom: 16px; }
 .thread-admin h1, .thread-admin h2 { color: white; }
@@ -16,9 +60,9 @@
 <div class="thread-admin">
 <div class="container">
     {% if back_url %}<a href="{{ back_url }}" class="back-link">← ফিরে যান</a>
-    {% else %}<a href="{% url 'date_wise_summary' %}" class="back-link">← তারিখ অনুযায়ী সারাংশ</a>{% endif %}
+    {% else %}<a href="{% url 'management_dashboard' %}" class="back-link">← ড্যাশবোর্ড</a>{% endif %}
     <div class="card">
-        <h1>#{{ market_list.list_id }} - মন্তব্য/যোগাযোগ</h1>
+        <h1>{{ market_list.list_id }} - মন্তব্য/যোগাযোগ</h1>
         <p style="color: #d1d5db; margin-top: 8px;">লিস্ট: {{ market_list.content|truncatewords:20|default:"-" }}</p>
     </div>
     <h2 style="margin-bottom: 12px;">মন্তব্য তালিকা</h2>
@@ -42,3 +86,4 @@
 </div>
 </div>
 {% endblock %}
+{% endif %}

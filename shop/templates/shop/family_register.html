@@ -3,10 +3,14 @@
 {% block content %}
 <div class="container" style="max-width: 440px;">
     <div class="card">
+        <a href="{% url 'landing_page' %}" class="back-home-icon" style="display: inline-flex; align-items: center; gap: 6px; color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.9rem; margin-bottom: 16px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            হোম
+        </a>
         <div style="text-align: center; margin-bottom: 24px;">
             <h1 style="color: var(--primary);">👨‍👩‍👧‍👦 ফ্যামিলি রেজিষ্ট্রেশন</h1>
         </div>
-        <form method="post">
+        <form method="post" id="registerForm">
             {% csrf_token %}
             {% for field in form %}
             <div style="margin-bottom: 16px;">
@@ -19,13 +23,14 @@
             </div>
             {% endfor %}
             <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">রেজিষ্ট্রেশন করুন</button>
-                <a href="{% url 'family_login' %}" class="btn btn-outline">লগইন</a>
+                <button type="submit" class="btn btn-primary btn-shine" style="flex: 1;">রেজিষ্ট্রেশন করুন</button>
+                <a href="{% url 'family_login' %}" class="btn btn-outline btn-shine">লগইন</a>
             </div>
         </form>
     </div>
 </div>
 <style>
+    .back-home-icon:hover { color: var(--primary-dark); }
     input, textarea {
         width: 100%;
         padding: 12px 16px;
@@ -35,4 +40,28 @@
         font-size: 1rem;
     }
 </style>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function(){
+    function triggerShine(btn) {
+        if (btn && btn.classList) {
+            btn.classList.remove('shine-animate');
+            void btn.offsetWidth;
+            btn.classList.add('shine-animate');
+            setTimeout(function(){ btn.classList.remove('shine-animate'); }, 600);
+        }
+    }
+    var form = document.getElementById('registerForm');
+    form.addEventListener('submit', function() {
+        triggerShine(form.querySelector('button[type="submit"]'));
+    });
+    form.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') triggerShine(form.querySelector('button[type="submit"]'));
+    });
+    document.querySelectorAll('.btn-shine').forEach(function(b) {
+        b.addEventListener('click', function() { if (b.tagName === 'A') triggerShine(b); });
+    });
+})();
+</script>
 {% endblock %}

@@ -1,7 +1,8 @@
 {% extends 'shop/base.html' %}
+{% load shop_extras %}
 {% block title %}এডমিন ড্যাশবোর্ড - EasyShop{% endblock %}
 {% block extra_css %}
-.admin-theme { background: #1f2937 !important; min-height: 100vh; }
+.admin-theme { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%) !important; min-height: 100vh; background-attachment: fixed; }
 .admin-theme .container { max-width: 900px; }
 .admin-header {
     display: flex;
@@ -19,28 +20,145 @@
     margin-left: 16px;
     text-decoration: none;
     font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 10px;
+    transition: background 0.2s;
 }
+.admin-header-icons a:hover { background: rgba(255,255,255,0.15); }
+.logout-btn svg { display: block; }
 .filter-cards {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
 }
 .filter-card {
     background: #374151;
     color: white;
-    padding: 20px;
+    padding: 16px;
     border-radius: 12px;
     cursor: pointer;
     text-align: center;
     text-decoration: none;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 .filter-card:hover { background: #4b5563; }
 .filter-card.active { background: #2563eb; }
-.filter-card .count { font-size: 1.8rem; font-weight: 700; }
-.filter-card .label { font-size: 0.9rem; opacity: 0.9; }
-.nav-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.filter-card .count { font-size: 1rem; font-weight: 700; }
+.filter-card .label { font-size: 0.8rem; opacity: 0.9; }
+.total-actions-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.total-action-btn {
+    padding: 12px 16px;
+    color: white;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: opacity 0.2s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+.total-action-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.total-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.total-action-btn.active { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
+.write-status-wrap {
+    display: none;
+    background: #1f2937;
+    border: 1px solid #4b5563;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.write-status-wrap.show { display: block; }
+.write-status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.write-status-input {
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #4b5563;
+    background: #111827;
+    color: white;
+    font-size: 0.95rem;
+}
+.write-status-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139,92,246,0.25);
+}
+.write-status-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.write-status-save,
+.write-status-clear {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.write-status-save {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+.write-status-save:hover { opacity: 0.92; }
+.write-status-clear {
+    background: rgba(255,255,255,0.12);
+    color: #e5e7eb;
+}
+.write-status-clear:hover { background: rgba(255,255,255,0.22); }
+.write-status-hint {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+.list-status-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    margin-left: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.1);
+    color: #e5e7eb;
+}
+.list-status-chip.has-custom {
+    background: #facc15;
+    color: #1f2937;
+}
+.inline-status-text {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #9ca3af;
+}
+.inline-status-text.has-custom { color: #facc15; }
+.nav-cards { display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+.nav-card { flex: 1; min-width: 240px; }
 .nav-card {
     background: #374151;
     color: white;
@@ -56,19 +174,76 @@
 .nav-card .nav-icon { font-size: 1.5rem; }
 .nav-card .nav-text h3 { margin: 0 0 4px 0; font-size: 1rem; }
 .nav-card .nav-text p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
+.delivery-path-pending-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    background: #dc2626;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 800;
+    border-radius: 9999px;
+}
 .list-entry {
     background: #374151;
     color: white;
     padding: 20px;
     border-radius: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.list-entry-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
 }
-.list-entry .user-date { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.list-entry .user-date { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.list-datetime-admin {
+    display: inline-block;
+    padding: 4px 12px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
 .list-entry .content { color: #d1d5db; margin: 8px 0; }
-.list-entry .actions { display: flex; gap: 8px; }
+.list-entry .actions { display: flex; gap: 8px; flex-shrink: 0; }
+.list-entry-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.list-section {
+    background: #1f2937;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #4b5563;
+}
+.list-section h4 { margin: 0 0 10px 0; font-size: 0.95rem; color: #9ca3af; }
+.list-section-content { color: #d1d5db; white-space: pre-wrap; font-size: 0.9rem; min-height: 60px; }
+.list-section-content.ai-loading { color: #9ca3af; font-style: italic; }
+.ai-generate-btn {
+    margin-top: 8px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+}
+.ai-generate-btn:hover { opacity: 0.9; }
+.ai-generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .list-entry .action-icon {
     width: 36px; height: 36px;
     border-radius: 8px;
@@ -78,23 +253,396 @@
 }
 .action-delete { background: #dc2626; color: white; }
 .action-approve { background: #2563eb; color: white; }
+.action-revert { background: #f59e0b; color: white; }
+.action-comment { background: #059669; color: white; }
+.action-restore { background: #4ade80; color: #064e3b; }
 .no-lists { color: #9ca3af; text-align: center; padding: 40px; }
-.notice-board textarea { width: 100%; padding: 12px; border-radius: 8px; border: none; color: #1f2937; font-family: inherit; resize: vertical; min-height: 80px; }
+.list-entry-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+.ai-generate-all-btn {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: opacity 0.2s;
+}
+.ai-generate-all-btn:hover { opacity: 0.9; }
+.ai-generate-all-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.list-entry-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.total-action-btn {
+    padding: 12px 16px;
+    color: white;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: opacity 0.2s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+.total-action-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+.total-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.total-action-btn.total-active { box-shadow: 0 0 0 2px rgba(255,255,255,0.45); }
+.inline-panel { display: none; margin-bottom: 20px; }
+.inline-panel.show { display: block; }
+.inline-merged-list { background: #374151; padding: 20px; border-radius: 12px; border: 1px solid #4b5563; cursor: pointer; user-select: none; }
+.inline-merged-list:hover { border-color: #6b7280; }
+.inline-merged-list .copy-hint { font-size: 0.8rem; color: #9ca3af; margin-top: 10px; }
+.inline-merged-list .list-section-content { margin: 0; }
+.inline-merged-list ul { list-style: none; padding: 0; margin: 0; }
+.inline-merged-list li { padding: 8px 0; border-bottom: 1px solid #4b5563; color: #d1d5db; font-size: 0.95rem; }
+.inline-merged-list li:last-child { border-bottom: none; }
+.consolidated-copy-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #059669; color: white; padding: 10px 20px; border-radius: 8px; font-size: 0.9rem; z-index: 9999; animation: fadeOut 2s ease 1s forwards; }
+@keyframes fadeOut { to { opacity: 0; } }
+.inline-panel .pdf-btn { display: inline-block; margin-bottom: 12px; padding: 8px 14px; background: #059669; color: white; border-radius: 8px; text-decoration: none; font-size: 0.9rem; }
+.inline-panel .pdf-btn:hover { background: #047857; color: white; }
+.inline-user-list { list-style: none; padding: 0; margin: 0; }
+.inline-user-item { margin-bottom: 10px; }
+.inline-user-click { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #374151; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
+.inline-user-click:hover { background: #4b5563; }
+.inline-user-click .name { flex: 1; font-weight: 600; font-size: 0.95rem; color: #34d399; }
+.inline-user-badge { min-width: 24px; height: 24px; padding: 0 8px; background: #8b5cf6; color: white; font-size: 0.85rem; font-weight: 700; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; }
+.inline-user-chevron { font-size: 0.7rem; transition: transform 0.25s; }
+.inline-user-item.open .inline-user-chevron { transform: rotate(180deg); }
+.inline-lists-dropdown { display: none; margin-top: 8px; padding: 14px 18px; background: #1f2937; border-radius: 10px; border: 1px solid #4b5563; }
+.inline-lists-dropdown.show { display: block; }
+.inline-list-item { background: #374151; padding: 14px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #4b5563; }
+.inline-list-item:last-child { margin-bottom: 0; }
+.inline-list-item .meta { font-size: 0.85rem; color: #9ca3af; margin-bottom: 6px; }
+.inline-list-item .meta a { color: #60a5fa; text-decoration: none; }
+.inline-list-item .meta a:hover { text-decoration: underline; }
+.inline-list-item .content { color: #d1d5db; white-space: pre-wrap; font-size: 0.85rem; }
+.inline-datetime { display: inline-block; padding: 2px 6px; background: #2563eb; color: white; font-size: 0.75rem; font-weight: 700; border-radius: 6px; }
+.inline-panel-empty { color: #9ca3af; padding: 16px; }
+.inline-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.inline-panel-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.inline-panel-back {
+    border-radius: 9999px;
+    border: 1px solid #4b5563;
+    background: #111827;
+    color: #e5e7eb;
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.inline-panel-back:hover {
+    background: #1f2937;
+}
+.delivery-flow-panel {
+    display: none;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 18px 18px 16px;
+    border-radius: 14px;
+    background: radial-gradient(circle at top left, rgba(52,211,153,0.15), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(59,130,246,0.18), transparent 55%),
+                #020617;
+    border: 1px solid rgba(148,163,184,0.4);
+    box-shadow: 0 18px 45px rgba(15,23,42,0.7);
+}
+.delivery-flow-panel.show { display: block; }
+.delivery-flow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.delivery-flow-header-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.delivery-flow-header-title::before {
+    content: '⏱';
+    font-size: 1rem;
+}
+.delivery-flow-btn {
+    padding: 8px 16px;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 40%, #15803d 100%);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 6px 16px rgba(34,197,94,0.45);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.delivery-flow-btn:hover {
+    opacity: 0.96;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(34,197,94,0.55);
+}
+.time-flow-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.time-flow-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(17,24,39,0.98));
+    border: 1px solid rgba(148,163,184,0.5);
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7);
+    position: relative;
+    overflow: hidden;
+}
+.time-flow-row::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border-left: 4px solid #22c55e;
+    opacity: 0.9;
+    pointer-events: none;
+}
+.time-flow-row:hover {
+    border-color: rgba(248,250,252,0.25);
+    transform: translateY(-1px);
+}
+.time-flow-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #bfdbfe;
+    min-width: 80px;
+    z-index: 1;
+    white-space: nowrap;
+}
+.time-flow-count {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 9999px;
+    background: rgba(55,65,81,0.95);
+    border: 1px solid rgba(148,163,184,0.9);
+    color: #e5e7eb;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.time-flow-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+    z-index: 1;
+}
+.time-flow-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+}
+.time-flow-field label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+}
+.time-flow-field input {
+    padding: 8px 10px;
+    border-radius: 9px;
+    border: 1px solid rgba(148,163,184,0.8);
+    background: rgba(15,23,42,0.95);
+    color: #e5e7eb;
+    font-size: 0.86rem;
+}
+.time-flow-field input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px rgba(56,189,248,0.7);
+}
+.time-flow-separator {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #9ca3af;
+    margin: 4px 2px 0;
+    align-self: flex-end;
+}
+.time-flow-icon-btn {
+    border-radius: 9999px;
+    border: 1px solid rgba(239,68,68,0.6);
+    background: rgba(248,113,113,0.1);
+    color: #fecaca;
+    cursor: pointer;
+    padding: 4px 9px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.time-flow-icon-btn:hover {
+    background: rgba(239,68,68,0.25);
+    border-color: rgba(248,113,113,0.9);
+    transform: translateY(-1px);
+}
+.delivery-flow-actions {
+    margin-top: 16px;
+    display: none;
+    justify-content: flex-end;
+}
+.delivery-flow-total-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    margin-left: 6px;
+    border-radius: 9999px;
+    background: rgba(30,64,175,0.9);
+    border: 1px solid rgba(129,140,248,0.9);
+    color: #e5e7eb;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.delivery-flow-sections {
+    margin-top: 18px;
+    border-top: 1px dashed rgba(148,163,184,0.4);
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.delivery-flow-section {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.6);
+}
+.delivery-flow-section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #e5e7eb;
+    font-weight: 600;
+}
+.delivery-flow-section-title small {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+.delivery-flow-section-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: block;
+}
+.delivery-flow-section-item {
+    margin-bottom: 10px;
+}
+.delivery-flow-section-body-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.delivery-flow-cloned-card {
+    margin: 0;
+}
+.flow-consolidated-selector {
+    display: none;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.flow-consolidated-option {
+    border-radius: 9999px;
+    border: 1px solid rgba(55,65,81,0.9);
+    background: rgba(31,41,55,0.9);
+    color: #e5e7eb;
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+.flow-consolidated-option.active {
+    border-color: rgba(37,99,235,0.9);
+    background: rgba(37,99,235,0.2);
+}
 @media (max-width: 600px) {
-    .filter-cards { grid-template-columns: 1fr; }
-    .list-entry { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .time-flow-row {
+        align-items: flex-start;
+    }
+    .time-flow-name {
+        min-width: 100%;
+    }
+}
+.notice-board textarea { width: 100%; padding: 8px 12px; border-radius: 8px; border: none; color: #1f2937; font-family: inherit; resize: vertical; min-height: 36px; max-height: 60px; font-size: 0.9rem; }
+@media (max-width: 768px) {
+    .admin-theme .container { padding: 0 16px; max-width: 100%; }
+    .admin-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .filter-cards { flex-wrap: wrap; gap: 8px; }
+    .filter-card { padding: 6px 12px; }
+    .filter-card .count { font-size: 0.95rem; }
+    .nav-card { padding: 16px; }
+    .list-entry-actions { flex-direction: column; align-items: stretch; }
+    .list-entry-actions .btn, .list-entry-actions a { text-align: center; }
+}
+@media (max-width: 700px) {
+    .list-entry-sections { grid-template-columns: 1fr; }
+    .total-actions-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+    .list-entry { gap: 12px; padding: 16px; }
+    .list-entry-header { flex-direction: column; }
+    .list-entry-header-row { flex-direction: column; align-items: stretch; }
+    .list-entry .actions { flex-wrap: wrap; }
+    .notice-board { padding: 14px 16px !important; }
+    .notice-board textarea { min-height: 70px; }
+}
+@media (max-width: 400px) {
+    .admin-brand h1 { font-size: 1rem; }
+    .admin-brand .sub { font-size: 0.8rem; }
+    .filter-card .count { font-size: 0.9rem; }
 }
 {% endblock %}
 {% block content %}
 <div class="admin-theme">
 <div class="container">
-    <nav style="background: transparent; box-shadow: none;">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <a href="{% url 'landing_page' %}" style="color: var(--primary);">EasyShop</a>
-            <a href="{% url 'user_logout' %}" style="color: var(--primary);">লগআউট</a>
-        </div>
-    </nav>
-
     <div class="admin-header">
         <div class="admin-brand">
             <span class="icon">🛒</span>
@@ -104,8 +652,9 @@
             </div>
         </div>
         <div class="admin-header-icons">
-            <a href="{% url 'messaging_inbox' %}" title="বার্তা">💬</a>
-            <a href="{% url 'user_logout' %}" title="লগআউট">🚪</a>
+            <a href="{% url 'user_logout' %}" class="logout-btn" title="লগআউট">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </a>
         </div>
     </div>
 
@@ -119,78 +668,1011 @@
         </form>
     </div>
 
-    <div class="filter-cards">
-        <a href="?filter=total" class="filter-card {% if filter_status == 'total' %}active{% endif %}">
-            <div class="count">{{ total_count }}</div>
-            <div class="label">সর্বমোট</div>
-        </a>
-        <a href="?filter=approved" class="filter-card {% if filter_status == 'approved' %}active{% endif %}">
-            <div class="count">{{ approved_count }}</div>
-            <div class="label">অনুমোদিত</div>
-        </a>
-        <a href="?filter=pending" class="filter-card {% if filter_status == 'pending' %}active{% endif %}">
-            <div class="count">{{ pending_count }}</div>
-            <div class="label">পেন্ডিং</div>
-        </a>
-    </div>
-
     <div class="nav-cards">
-        <a href="{% url 'date_wise_summary' %}" class="nav-card">
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <span class="nav-icon">📋</span>
-                <div class="nav-text">
-                    <h3>তারিখ অনুযায়ী সারাংশ</h3>
-                    <p>কনসোলিডেটেড ভিউ</p>
-                </div>
-            </div>
-            <span>→</span>
-        </a>
         <a href="{% url 'user_directory' %}" class="nav-card">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <span class="nav-icon">👥</span>
                 <div class="nav-text">
-                    <h3>ইউজার ডাইরেক্টরি</h3>
-                    <p>ফ্যামিলি মেম্বার প্রোফাইল</p>
+                    <h3>Delivery Path setup</h3>
+                    <p>ইউজার প্রোফাইল ও ডেলিভারি পাথ</p>
                 </div>
+                {% if delivery_path_pending_count %}
+                <span class="delivery-path-pending-badge">{{ delivery_path_pending_count }}</span>
+                {% endif %}
             </div>
             <span>→</span>
         </a>
-        <a href="{% url 'delivery' %}" class="nav-card">
+        <a href="{% url 'user_profiles' %}" class="nav-card">
             <div style="display: flex; align-items: center; gap: 16px;">
-                <span class="nav-icon">🚚</span>
+                <span class="nav-icon">📋</span>
                 <div class="nav-text">
-                    <h3>ডেলিভারী ডাইরেক্টরি</h3>
-                    <p>ডেলিভারী প্রোফাইল</p>
+                    <h3>User Profiles</h3>
+                    <p>Username, Full Name, Address, Phone ও প্রোফাইল মুছুন</p>
                 </div>
             </div>
             <span>→</span>
         </a>
     </div>
 
-    <h3 style="color: white; margin-bottom: 16px;">লিস্ট এন্ট্রি</h3>
+    <div class="list-entry-header-row">
+        <h3 style="color: white; margin: 0;">লিস্ট এন্ট্রি</h3>
+    </div>
+
+    {% if filter_status == 'total' %}
+    <div id="inlineConsolidatedPanel" class="inline-panel">
+        <div class="inline-panel-header">
+            <div class="inline-panel-title">📋 Consolidated List</div>
+            <button type="button" class="inline-panel-back" data-target="consolidated">← Back</button>
+        </div>
+        <div id="flowConsolidatedSelector" class="flow-consolidated-selector"></div>
+        <a href="{% url 'list_entry_consolidated_pdf' %}?filter={{ filter_status }}" class="pdf-btn">📄 পিডিএফ ডাউনলোড</a>
+        {% if merged_items %}
+        <div class="inline-merged-list">
+            <ul>
+                {% for item in merged_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <p class="inline-panel-empty">কোনো আইটেম নেই।</p>
+        {% endif %}
+    </div>
+
+    <div id="inlineUserViewPanel" class="inline-panel">
+        <div class="inline-panel-header">
+            <div class="inline-panel-title">👥 User View</div>
+            <button type="button" class="inline-panel-back" data-target="user">← Back</button>
+        </div>
+        <div id="flowUserSelector" class="flow-consolidated-selector"></div>
+        <p style="color: #9ca3af; margin: 0 0 12px 0; font-size: 0.9rem;">ইউজার ক্লিক করুন বাজার লিস্ট দেখতে।</p>
+        {% if users_list %}
+        <ul class="inline-user-list">
+            {% for u in users_list %}
+            <li class="inline-user-item">
+                <span class="inline-user-click" tabindex="0">
+                    <span class="name">{{ u.display_name }}</span>
+                    <span class="inline-user-badge">{{ u.count }}</span>
+                    <span class="inline-user-chevron">▼</span>
+                </span>
+                <div class="inline-lists-dropdown">
+                    {% for lst in u.lists %}
+                    <div class="inline-list-item"{% if lst.created_at %} data-created="{{ lst.created_at|date:'c' }}"{% endif %}>
+                        <div class="meta">
+                            <a href="{% url 'user_profile_detail' u.user_id %}">{{ lst.list_id }}</a>
+                                            · <span class="inline-datetime">{{ lst.created_at|date_card }}</span>
+                        </div>
+                        <div class="inline-status-text{% if lst.status_note %} has-custom{% endif %}" data-default="{{ lst.status }}">{{ lst.status_note|default:lst.status }}</div>
+                        <div class="content">{{ lst.ai_content|default:lst.content|default:"-"|linebreaksbr }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="inline-panel-empty">কোনো লিস্ট নেই।</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    <div id="listCardsSection">
+    <div class="filter-cards" style="margin-bottom: 12px;">
+        <a href="?filter=delivered" class="filter-card {% if filter_status == 'delivered' %}active{% endif %}" title="Delivered orders">
+            <div class="count">{{ delivered_count }}</div>
+            <div class="label">Delivered</div>
+        </a>
+        <a href="?filter=declined" class="filter-card {% if filter_status == 'declined' %}active{% endif %}" title="Declined orders">
+            <div class="count">{{ declined_count }}</div>
+            <div class="label">Declined</div>
+        </a>
+        <a href="?filter=late_transferred" class="filter-card {% if filter_status == 'late_transferred' %}active{% endif %}" title="Late Transfered orders">
+            <div class="count">{{ late_transferred_count }}</div>
+            <div class="label">Late Transfered Order</div>
+        </a>
+    </div>
+    <div class="filter-cards" style="margin-bottom: 20px;">
+        <a href="?filter=total" class="filter-card {% if filter_status == 'total' %}active{% endif %}" title="All orders">
+            <div class="count">{{ total_count }}</div>
+            <div class="label">Total Order Received</div>
+        </a>
+    </div>
+
+    {% if filter_status == 'total' %}
+    <div class="total-actions-row">
+        <button type="button" class="total-action-btn" id="writeStatusToggleBtn">✏️ Write Status</button>
+        <button type="button" class="total-action-btn" id="consolidatedToggleBtn">📋 Consolidated List</button>
+        <button type="button" class="total-action-btn" id="userViewToggleBtn">👤 User View</button>
+        <button type="button" class="total-action-btn" id="aiGenerateAllBtn">✨ সব লিস্ট AI দিয়ে যাচাই</button>
+        <button type="button" class="total-action-btn" id="deliveryFlowToggleBtn">
+            Delivery Flow Set
+            <span class="delivery-flow-total-badge" id="deliveryFlowTotalBadge">0</span>
+        </button>
+    </div>
+    <div class="write-status-wrap" id="writeStatusWrap">
+        <form id="writeStatusForm" class="write-status-form" method="post" action="{% url 'write_list_status' %}">
+            {% csrf_token %}
+            <input type="text" id="writeStatusInput" name="status_text" class="write-status-input" placeholder="নতুন স্ট্যাটাস লিখুন (যেমনঃ Processing)" value="{{ status_override }}">
+            <div class="write-status-actions">
+                <button type="submit" class="write-status-save">Save</button>
+                <button type="button" class="write-status-clear" id="writeStatusClearBtn">Clear</button>
+            </div>
+            <p class="write-status-hint">এই স্ট্যাটাস টেক্সট সব Total Order Received লিস্টে দেখাবে। খালি রেখে Save চাপলে ডিফল্ট স্ট্যাটাস ফিরে আসবে।</p>
+        </form>
+    </div>
+    <div class="delivery-flow-panel" id="deliveryFlowPanel" data-save-url="{% url 'save_delivery_flow' %}">
+        <div class="delivery-flow-header">
+            <h4 class="delivery-flow-header-title">Delivery Flow Set</h4>
+            <button type="button" class="delivery-flow-btn" id="createTimeFlowBtn">Create Time Flow</button>
+        </div>
+        <div class="time-flow-list" id="timeFlowList">
+            {# Rows will be added here dynamically #}
+        </div>
+        <div class="delivery-flow-actions">
+            <button type="button" class="delivery-flow-btn" id="saveTimeFlowBtn">Update</button>
+        </div>
+        <div class="delivery-flow-sections" id="deliveryFlowSections"></div>
+    </div>
+    {% endif %}
+
     {% if lists %}
     {% for list in lists %}
-    <div class="list-entry">
-        <div style="flex: 1;">
-            <div class="user-date">
-                <span>👤</span>
-                <a href="{% url 'user_profile_detail' list.family_id %}" style="color: white;">@{{ list.family.username }}</a>
-                <span>{{ list.created_at|date:"M d, Y" }}</span>
-                <a href="{% url 'messaging_thread' list.family_id %}" class="action-icon" style="background: #059669; color: white; margin-left: 8px;" title="বার্তা">💬</a>
+    <div class="list-entry" data-list-pk="{{ list.pk }}" {% if list.created_at %}data-created="{{ list.created_at|date:'c' }}"{% endif %}>
+        <div class="list-entry-header">
+            <div style="flex: 1;">
+                <div class="user-date">
+                    <a href="{% url 'user_profile_detail' list.family_id %}" class="list-avatar-link" title="View profile">{% if list.user_avatar_url %}
+                        <img src="{{ list.user_avatar_url }}" alt="" class="list-user-avatar">
+                        {% else %}
+                        <span class="list-user-avatar-placeholder">👤</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'user_profile_detail' list.family_id %}" class="list-username" title="View profile">{{ list.user_display_name }}</a>
+                    <span class="list-meta"><span class="list-datetime-admin">{{ list.created_at|date_card }}</span> এ তৈরি</span>
+                    <span class="list-status-chip {% if list.note %}has-custom{% endif %}" data-default="{{ list.get_status_display }}">{{ list.note|default:list.get_status_display }}</span>
+                </div>
             </div>
-            <div class="content">{{ list.content|default:"-"|linebreaksbr }}</div>
+            <div class="actions">
+                {% if list.status == 'pending' %}
+                <a href="{% url 'approve_list' list.pk %}" class="action-icon action-approve" title="Approve">👍</a>
+                {% elif list.status == 'approved' %}
+                <a href="{% url 'revert_to_pending' list.pk %}" class="action-icon action-revert" title="Revert to pending">↩️</a>
+                <a href="#" class="action-icon action-comment open-comment-modal" title="Comment" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
+                {% elif list.status == 'declined' %}
+                <a href="{% url 'restore_list' list.pk %}" class="action-icon action-restore" title="Restore to Total">♻️</a>
+                {% endif %}
+                <a href="{% url 'admin_delete_list' list.pk %}" class="action-icon action-delete" title="Delete" onclick="return confirm('লিস্ট মুছবেন?');">🗑️</a>
+            </div>
         </div>
-        <div class="actions">
-            {% if list.status == 'pending' %}
-            <a href="{% url 'admin_delete_list' list.pk %}" class="action-icon action-delete" title="মুছুন" onclick="return confirm('লিস্ট মুছবেন?');">🗑️</a>
-            <a href="{% url 'approve_list' list.pk %}" class="action-icon action-approve" title="অনুমোদন">👍</a>
-            {% endif %}
+        <div class="list-entry-sections">
+            <div class="list-section" title="Original list (as submitted)">
+                <h4>মূল লিস্ট (যেমন আছে)</h4>
+                <div class="list-section-content">{{ list.content|default:"-"|linebreaksbr }}</div>
+            </div>
+            <div class="list-section" title="AI list (click generate to regenerate)">
+                <h4>AI লিস্ট (পুনরায় জেনারেট)</h4>
+                <div class="list-section-content ai-content" id="ai-content-{{ list.pk }}">{% if list.ai_content %}{{ list.ai_content|linebreaksbr }}{% else %}— জেনারেট বাটনে ক্লিক করুন{% endif %}</div>
+                <button type="button" class="ai-generate-btn" data-list-pk="{{ list.pk }}" data-ai-url="{% url 'ai_generate_list' list.pk %}" title="Generate with AI">✨ AI দিয়ে জেনারেট</button>
+            </div>
         </div>
     </div>
     {% endfor %}
     {% else %}
     <div class="no-lists">কোনো লিস্ট নেই।</div>
     {% endif %}
+    </div>
 </div>
 </div>
+{{ delivery_flows|json_script:"delivery-flow-json" }}
+
+<style>
+.list-avatar-link { display: inline-flex; align-items: center; flex-shrink: 0; }
+.list-user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.list-user-avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: #4b5563; color: #9ca3af; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.list-username { color: #60a5fa; font-weight: 600; text-decoration: none; }
+.list-username:hover { color: #93c5fd; text-decoration: underline; }
+.list-meta { font-size: 0.85rem; color: #9ca3af; }
+.list-status-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; margin-left: 8px; }
+.list-status-approved { background: #2563eb; color: white; }
+.admin-list-content { display: block; color: #d1d5db; margin-top: 8px; white-space: pre-wrap; font-size: 0.95rem; }
+.comment-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.comment-modal-overlay.active { display: flex; }
+.comment-modal-box { background: #1f2937; border-radius: 16px; width: 100%; max-width: 560px; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.comment-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #374151; }
+.comment-modal-header h3 { margin: 0; font-size: 1.1rem; color: white; }
+.comment-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; line-height: 1; padding: 0 8px; }
+.comment-modal-close:hover { color: white; }
+.comment-modal-iframe { width: 100%; height: 60vh; min-height: 400px; border: none; display: block; }
+</style>
+<div id="adminCommentModal" class="comment-modal-overlay">
+    <div class="comment-modal-box">
+        <div class="comment-modal-header">
+            <h3>মন্তব্য</h3>
+            <button type="button" class="comment-modal-close" aria-label="বন্ধ">&times;</button>
+        </div>
+        <iframe id="adminCommentIframe" class="comment-modal-iframe" src="about:blank"></iframe>
+    </div>
+</div>
+<script>
+(function() {
+    var SCROLL_KEY = 'mgmt_dashboard_scroll';
+    var saved = sessionStorage.getItem(SCROLL_KEY);
+    if (saved !== null) {
+        sessionStorage.removeItem(SCROLL_KEY);
+        var y = parseInt(saved, 10);
+        if (!isNaN(y) && y > 0) {
+            function doScroll() { window.scrollTo(0, y); }
+            if (document.readyState === 'complete') setTimeout(doScroll, 0);
+            else window.addEventListener('load', doScroll);
+        }
+    }
+    document.querySelectorAll('.filter-card').forEach(function(a) {
+        a.addEventListener('click', function() { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); });
+    });
+    document.querySelectorAll('.list-entry .action-icon').forEach(function(a) {
+        a.addEventListener('click', function() { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); });
+    });
+})();
+
+(function() {
+    var toggleBtn = document.getElementById('deliveryFlowToggleBtn');
+    var panel = document.getElementById('deliveryFlowPanel');
+    var createBtn = document.getElementById('createTimeFlowBtn');
+    var listEl = document.getElementById('timeFlowList');
+    var saveBtn = document.getElementById('saveTimeFlowBtn');
+    var sectionsEl = document.getElementById('deliveryFlowSections');
+    var saveUrl = panel ? panel.getAttribute('data-save-url') : '';
+    var csrfToken = (document.querySelector('input[name=\"csrfmiddlewaretoken\"]') || {}).value || '';
+    var initialFlows = [];
+    try {
+        var jsonEl = document.getElementById('delivery-flow-json');
+        if (jsonEl && jsonEl.textContent) {
+            initialFlows = JSON.parse(jsonEl.textContent);
+        }
+    } catch (e) {
+        initialFlows = [];
+    }
+    if (!toggleBtn || !panel || !createBtn || !listEl || !saveBtn || !sectionsEl) return;
+
+    var flowCount = 0;
+
+    function createRow(initial) {
+        flowCount += 1;
+        var row = document.createElement('div');
+        row.className = 'time-flow-row';
+        row.innerHTML =
+            '<div class="time-flow-name">Flow ' + flowCount + '<span class="time-flow-count">0</span></div>' +
+            '<div class="time-flow-fields">' +
+                '<div class="time-flow-field">' +
+                    '<label>Start Time</label>' +
+                    '<input type="time" name="flow_' + flowCount + '_start">' +
+                '</div>' +
+                '<span class="time-flow-separator">to</span>' +
+                '<div class="time-flow-field">' +
+                    '<label>End Time</label>' +
+                    '<input type="time" name="flow_' + flowCount + '_end">' +
+                '</div>' +
+                '<span class="time-flow-separator">=</span>' +
+                '<div class="time-flow-field">' +
+                    '<label>কোন সময়?</label>' +
+                    '<input type="text" name="flow_' + flowCount + '_label">' +
+                '</div>' +
+                '<button type="button" class="time-flow-icon-btn time-flow-delete-btn" title="Delete flow">🗑️</button>' +
+            '</div>';
+        listEl.appendChild(row);
+        if (initial) {
+            var sIn = row.querySelector('input[name$=\"_start\"]');
+            var eIn = row.querySelector('input[name$=\"_end\"]');
+            var lIn = row.querySelector('input[name$=\"_label\"]');
+            if (sIn && initial.start) sIn.value = initial.start;
+            if (eIn && initial.end) eIn.value = initial.end;
+            if (lIn && initial.label) lIn.value = initial.label;
+        }
+        updateSaveVisibility();
+        renumberFlows();
+    }
+
+    function updateSaveVisibility() {
+        var hasRows = !!listEl.querySelector('.time-flow-row');
+        saveBtn.parentElement.style.display = hasRows ? 'flex' : 'none';
+    }
+
+    function renumberFlows() {
+        var rows = listEl.querySelectorAll('.time-flow-row');
+        rows.forEach(function(row, idx) {
+            var nameEl = row.querySelector('.time-flow-name');
+            if (nameEl) {
+                nameEl.textContent = 'Flow ' + (idx + 1);
+            }
+        });
+    }
+
+    function collectFlows() {
+        var rows = listEl.querySelectorAll('.time-flow-row');
+        var flows = [];
+        rows.forEach(function(row, idx) {
+            var startInput = row.querySelector('input[name$="_start"]');
+            var endInput = row.querySelector('input[name$="_end"]');
+            var labelInput = row.querySelector('input[name$="_label"]');
+            var startVal = startInput ? (startInput.value || '').trim() : '';
+            var endVal = endInput ? (endInput.value || '').trim() : '';
+            var labelVal = labelInput ? (labelInput.value || '').trim() : '';
+            // শুধুমাত্র সম্পূর্ণ ভরা ফ্লো (start+end+label) রাখি
+            if (startVal && endVal && labelVal) {
+                flows.push({
+                    name: 'Flow ' + (idx + 1),
+                    start: startVal,
+                    end: endVal,
+                    label: labelVal
+                });
+            }
+        });
+        return flows;
+    }
+
+    function parseTimeToMinutes(t) {
+        if (!t) return null;
+        var parts = t.split(':');
+        if (parts.length < 2) return null;
+        var h = parseInt(parts[0], 10);
+        var m = parseInt(parts[1], 10);
+        if (isNaN(h) || isNaN(m)) return null;
+        return h * 60 + m;
+    }
+
+    function getListData() {
+        var nodes = Array.prototype.slice.call(document.querySelectorAll('.list-entry'));
+        return nodes.map(function(node) {
+            var createdIso = node.getAttribute('data-created') || '';
+            var createdMinutes = null;
+            if (createdIso) {
+                var d = new Date(createdIso);
+                if (!isNaN(d.getTime())) {
+                    createdMinutes = d.getHours() * 60 + d.getMinutes();
+                }
+            }
+            var userEl = node.querySelector('.list-username');
+            var timeEl = node.querySelector('.list-datetime-admin');
+            return {
+                el: node,
+                pk: node.getAttribute('data-list-pk') || '',
+                user: userEl ? userEl.textContent.trim() : '',
+                createdDisplay: timeEl ? timeEl.textContent.trim() : '',
+                createdMinutes: createdMinutes
+            };
+        });
+    }
+
+    function formatTime12(t) {
+        if (!t) return '';
+        var parts = t.split(':');
+        if (parts.length < 2) return t;
+        var h = parseInt(parts[0], 10);
+        var m = parts[1];
+        if (isNaN(h)) return t;
+        var ampm = h < 12 ? 'AM' : 'PM';
+        var h12 = h % 12;
+        if (h12 === 0) h12 = 12;
+        return h12 + ':' + m + ' ' + ampm;
+    }
+
+    function renderSections(flows) {
+        sectionsEl.innerHTML = '';
+        var listData = getListData();
+
+        // সব ফ্লোর count badge আপডেট করি (প্রতিটি রো আলাদা করে)
+        var rows = listEl.querySelectorAll('.time-flow-row');
+        var totalCount = 0;
+        rows.forEach(function(row) {
+            var startInput = row.querySelector('input[name$="_start"]');
+            var endInput = row.querySelector('input[name$="_end"]');
+            var labelInput = row.querySelector('input[name$="_label"]');
+            var startVal = startInput ? (startInput.value || '').trim() : '';
+            var endVal = endInput ? (endInput.value || '').trim() : '';
+            var labelVal = labelInput ? (labelInput.value || '').trim() : '';
+            var count = 0;
+            if (startVal && endVal && labelVal) {
+                var sMinRow = parseTimeToMinutes(startVal);
+                var eMinRow = parseTimeToMinutes(endVal);
+                if (sMinRow !== null && eMinRow !== null) {
+                    count = listData.filter(function(ld) {
+                        return ld.createdMinutes !== null &&
+                               ld.createdMinutes >= sMinRow &&
+                               ld.createdMinutes <= eMinRow;
+                    }).length;
+                }
+            }
+            var countEl = row.querySelector('.time-flow-count');
+            if (countEl) countEl.textContent = count;
+            totalCount += count;
+        });
+
+        // Delivery Flow Set বাটনের উপরের টোটাল ব্যাজ আপডেট করি
+        var totalBadge = document.getElementById('deliveryFlowTotalBadge');
+        if (totalBadge) {
+            totalBadge.textContent = totalCount;
+        }
+
+        // flows (valid ফ্লো) এর জন্য সেকশন বানাই
+        flows.forEach(function(flow) {
+            var sMin = parseTimeToMinutes(flow.start);
+            var eMin = parseTimeToMinutes(flow.end);
+            if (sMin === null || eMin === null) return;
+            if (!flow.label) return;
+            var matched = listData.filter(function(ld) {
+                return ld.createdMinutes !== null &&
+                       ld.createdMinutes >= sMin &&
+                       ld.createdMinutes <= eMin;
+            });
+            if (!matched.length) return;
+            var sec = document.createElement('div');
+            sec.className = 'delivery-flow-section';
+            var title = document.createElement('div');
+            title.className = 'delivery-flow-section-title';
+            var left = document.createElement('span');
+            left.textContent = flow.label;
+            var right = document.createElement('small');
+            right.textContent = formatTime12(flow.start) + ' – ' + formatTime12(flow.end) + ' • ' + matched.length + ' order';
+            title.appendChild(left);
+            title.appendChild(right);
+            var container = document.createElement('div');
+            container.className = 'delivery-flow-section-body-cards';
+            matched.forEach(function(ld) {
+                var clone = ld.el.cloneNode(true);
+                clone.classList.add('delivery-flow-cloned-card');
+                container.appendChild(clone);
+            });
+            sec.appendChild(title);
+            sec.appendChild(container);
+            sectionsEl.appendChild(sec);
+        });
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        var isOpen = panel.classList.contains('show');
+        panel.classList.toggle('show', !isOpen);
+        toggleBtn.classList.toggle('total-active', !isOpen);
+        // শুধু Delivery Flow প্যানেল ওপেন/ক্লোজ হচ্ছে, List Entry অন্য অংশ আগের মতই থাকবে
+    });
+
+    createBtn.addEventListener('click', function() {
+        createRow();
+    });
+
+    listEl.addEventListener('click', function(e) {
+        var target = e.target;
+        if (target.classList.contains('time-flow-delete-btn')) {
+            var rowDel = target.closest('.time-flow-row');
+            if (!rowDel) return;
+            if (confirm('এই ফ্লো রো মুছবেন?')) {
+                rowDel.remove();
+                updateSaveVisibility();
+                renumberFlows();
+                var flows = collectFlows();
+                if (!flows.length) {
+                    // সব ফ্লো মুছে গেলে — Delivery Flow সেকশন পরিষ্কার করি, মূল লিস্ট আগের মতই থাকে
+                    sectionsEl.innerHTML = '';
+                } else {
+                    renderSections(flows);
+                }
+            }
+        }
+    });
+
+    listEl.addEventListener('input', function(e) {
+        var target = e.target;
+        if (target.tagName === 'INPUT' && (/_start$|_end$|_label$/).test(target.name || '')) {
+            var flows = collectFlows();
+            if (!flows.length) {
+                // কোনো ভ্যালিড ফ্লো না থাকলে শুধু Delivery Flow ভিউ ক্লিয়ার করি
+                sectionsEl.innerHTML = '';
+                return;
+            }
+            renderSections(flows);
+        }
+    });
+
+    saveBtn.addEventListener('click', function() {
+        var flows = collectFlows();
+        renderSections(flows);
+        console.log('Delivery Flow config:', flows);
+        if (!saveUrl) {
+            alert('Delivery Flow আপডেট করা হয়েছে।');
+            return;
+        }
+        var body = 'flows=' + encodeURIComponent(JSON.stringify(flows));
+        fetch(saveUrl, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: body
+        }).then(function(r) {
+            if (!r.ok) throw new Error('Failed to save');
+            return r.json();
+        }).then(function(data) {
+            if (!data || !data.success) {
+                alert('Delivery Flow আপডেট করা যায়নি। আবার চেষ্টা করুন।');
+                return;
+            }
+            alert('Delivery Flow আপডেট করা হয়েছে।');
+        }).catch(function() {
+            alert('Delivery Flow আপডেট করার সময় ত্রুটি হয়েছে।');
+        });
+    });
+
+    // Load any existing persisted flows into UI on first load
+    if (initialFlows && initialFlows.length) {
+        initialFlows.forEach(function(f) { createRow(f); });
+        renumberFlows();
+        renderSections(collectFlows());
+        // পেজ লোডেই Delivery Flow view রাখতে চাইলে প্যানেল দেখাতে পারি
+        // panel.classList.add('show');
+        // toggleBtn.classList.add('total-active');
+    }
+})();
+(function() {
+    var modal = document.getElementById('adminCommentModal');
+    var iframe = document.getElementById('adminCommentIframe');
+    document.querySelectorAll('.open-comment-modal').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            iframe.src = this.getAttribute('data-comment-url');
+            modal.classList.add('active');
+        });
+    });
+    document.querySelector('.comment-modal-close').addEventListener('click', function() {
+        iframe.src = 'about:blank';
+        modal.classList.remove('active');
+    });
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            iframe.src = 'about:blank';
+            modal.classList.remove('active');
+        }
+    });
+})();
+
+function generateOne(btn, pk, url) {
+    var container = document.getElementById('ai-content-' + pk);
+    if (!container || !url) return Promise.resolve();
+    btn.disabled = true;
+    container.textContent = 'লোড হচ্ছে...';
+    container.classList.add('ai-loading');
+    return fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            container.textContent = data.content || '—';
+            container.classList.remove('ai-loading');
+        })
+        .catch(function() {
+            container.textContent = 'ত্রুটি হয়েছে। আবার চেষ্টা করুন।';
+            container.classList.remove('ai-loading');
+        })
+        .finally(function() { btn.disabled = false; });
+}
+
+document.querySelectorAll('.ai-generate-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var pk = this.getAttribute('data-list-pk');
+        var url = this.getAttribute('data-ai-url');
+        generateOne(this, pk, url);
+    });
+});
+
+var generateAllBtn = document.getElementById('aiGenerateAllBtn');
+if (generateAllBtn) {
+    generateAllBtn.addEventListener('click', function() {
+        var btns = document.querySelectorAll('.ai-generate-btn');
+        if (!btns.length) return;
+        generateAllBtn.disabled = true;
+        var promises = [];
+        btns.forEach(function(btn) {
+            promises.push(generateOne(btn, btn.getAttribute('data-list-pk'), btn.getAttribute('data-ai-url')));
+        });
+        Promise.all(promises).finally(function() { generateAllBtn.disabled = false; });
+    });
+}
+
+(function() {
+    var writeBtn = document.getElementById('writeStatusToggleBtn');
+    var wrap = document.getElementById('writeStatusWrap');
+    var form = document.getElementById('writeStatusForm');
+    var input = document.getElementById('writeStatusInput');
+    var clearBtn = document.getElementById('writeStatusClearBtn');
+    if (!form) return;
+    var csrfToken = (form.querySelector('input[name="csrfmiddlewaretoken"]') || document.querySelector('input[name="csrfmiddlewaretoken"]'));
+    csrfToken = csrfToken ? csrfToken.value : '';
+
+    function applyStatusText(text) {
+        var val = (text || '').trim();
+        document.querySelectorAll('.list-status-chip').forEach(function(chip) {
+            var def = chip.getAttribute('data-default') || '';
+            if (val) {
+                chip.textContent = val;
+                chip.classList.add('has-custom');
+            } else {
+                chip.textContent = def;
+                chip.classList.remove('has-custom');
+            }
+        });
+        document.querySelectorAll('.inline-status-text').forEach(function(el) {
+            var def = el.getAttribute('data-default') || '';
+            if (val) {
+                el.textContent = val;
+                el.classList.add('has-custom');
+            } else {
+                el.textContent = def;
+                el.classList.remove('has-custom');
+            }
+        });
+        if (writeBtn) {
+            if (val) writeBtn.classList.add('active');
+            else writeBtn.classList.remove('active');
+        }
+        if (input) {
+            input.value = val;
+        }
+    }
+
+    function postStatus(value) {
+        var trimmed = (value || '').trim();
+        var data = new FormData();
+        data.append('status_text', trimmed);
+        if (csrfToken) {
+            data.append('csrfmiddlewaretoken', csrfToken);
+        }
+        fetch(form.getAttribute('action'), {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
+            body: data
+        }).then(function(r) { return r.json(); })
+        .then(function(resp) {
+            if (resp && resp.success) {
+                applyStatusText(resp.status_text || '');
+            } else {
+                alert('স্ট্যাটাস আপডেট করা যায়নি। আবার চেষ্টা করুন।');
+            }
+        }).catch(function() {
+            alert('স্ট্যাটাস আপডেট করার সময় ত্রুটি হয়েছে।');
+        });
+    }
+
+    if (writeBtn && wrap) {
+        writeBtn.addEventListener('click', function() {
+            wrap.classList.toggle('show');
+            if (wrap.classList.contains('show') && input) {
+                setTimeout(function() { input.focus(); input.select(); }, 0);
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            postStatus(input ? input.value : '');
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            postStatus('');
+        });
+    }
+
+    // initialize active state based on initial value
+    if (input && input.value.trim()) {
+        if (writeBtn) writeBtn.classList.add('active');
+    }
+})();
+
+(function() {
+    var consolidatedBtn = document.getElementById('consolidatedToggleBtn');
+    var userViewBtn = document.getElementById('userViewToggleBtn');
+    var consolidatedPanel = document.getElementById('inlineConsolidatedPanel');
+    var userViewPanel = document.getElementById('inlineUserViewPanel');
+    var listCardsSection = document.getElementById('listCardsSection');
+    var flowSelector = document.getElementById('flowConsolidatedSelector');
+    var flowUserSelector = document.getElementById('flowUserSelector');
+    function updateVisibility() {
+        var consolidatedShow = consolidatedPanel && consolidatedPanel.classList.contains('show');
+        var userViewShow = userViewPanel && userViewPanel.classList.contains('show');
+        if (listCardsSection) listCardsSection.style.display = (consolidatedShow || userViewShow) ? 'none' : '';
+    }
+
+    function getValidFlowsForConsolidation() {
+        var rows = document.querySelectorAll('.time-flow-row');
+        var flows = [];
+        rows.forEach(function(row, idx) {
+            var startInput = row.querySelector('input[name$="_start"]');
+            var endInput = row.querySelector('input[name$="_end"]');
+            var labelInput = row.querySelector('input[name$="_label"]');
+            var startVal = startInput ? (startInput.value || '').trim() : '';
+            var endVal = endInput ? (endInput.value || '').trim() : '';
+            var labelVal = labelInput ? (labelInput.value || '').trim() : '';
+            if (startVal && endVal && labelVal) {
+                flows.push({
+                    index: idx,
+                    name: 'Flow ' + (idx + 1),
+                    label: labelVal,
+                    start: startVal,
+                    end: endVal
+                });
+            }
+        });
+        return flows;
+    }
+
+    function stripNumberPrefix(line) {
+        return line.replace(/^[0-9০-৯]+[.\s]+/, '').trim();
+    }
+
+    /** শুধু নম্বর (বাংলা/ইং) হলে বাদ — আইটেম হিসেবে নেব না */
+    function isOnlyNumber(s) {
+        if (!s || !s.trim()) return true;
+        return /^[০-৯0-9.\s]+$/.test(s.trim());
+    }
+
+    /** এক লাইনে শুধু কমা বা " ও " দিয়ে ভাগ — kg/পরিমাণ ভাগ হয় না, তাই "১ kg আলু" একটাই আইটেম */
+    function lineToSingleItems(line) {
+        if (!line || !line.trim()) return [];
+        var parts = line.split(/[,،]+|\s+ও\s+/);
+        return parts.map(function(p) { return p.trim(); }).filter(function(p) { return p.length > 0 && !isOnlyNumber(p); });
+    }
+
+    function numberWithBengali(lines) {
+        var digits = '০১২৩৪৫৬৭৮৯';
+        return lines.map(function(ln, i) {
+            var numStr = String(i + 1).replace(/[0-9]/g, function(d) { return digits[d]; });
+            return numStr + '. ' + ln;
+        });
+    }
+
+    function buildConsolidatedForFlow(flow) {
+        // শুধু Delivery Flow Set এর ভেতরের clone কার্ডগুলো ব্যবহার করব
+        var deliverySections = document.getElementById('deliveryFlowSections');
+        var nodes = deliverySections ? Array.prototype.slice.call(deliverySections.querySelectorAll('.delivery-flow-cloned-card')) : [];
+        var items = [];
+        nodes.forEach(function(node) {
+            var createdIso = node.getAttribute('data-created') || '';
+            if (!createdIso) return;
+            var d = new Date(createdIso);
+            if (isNaN(d.getTime())) return;
+            var minutes = d.getHours() * 60 + d.getMinutes();
+            var sMin = (function(t){var p=t.split(':'),h=parseInt(p[0],10),m=parseInt(p[1],10);return isNaN(h)||isNaN(m)?null:h*60+m;})(flow.start);
+            var eMin = (function(t){var p=t.split(':'),h=parseInt(p[0],10),m=parseInt(p[1],10);return isNaN(h)||isNaN(m)?null:h*60+m;})(flow.end);
+            if (sMin === null || eMin === null) return;
+            if (minutes < sMin || minutes > eMin) return;
+            // শুধুমাত্র AI লিস্ট (পুনরায় জেনারেট) থেকে পয়েন্ট নেবো
+            var aiEl = node.querySelector('.list-entry-sections .list-section:nth-child(2) .list-section-content');
+            var srcText = (aiEl && aiEl.textContent.trim()) || '';
+            if (!srcText) return;
+            // শুধু সিরিয়াল নম্বর (১. / 2. ) দিয়ে ভাগ — পরিমাণ যেমন '১ কেজি', '৫০০ গ্রাম' ভাগ হবে না
+            var numberPattern = /(?=[০-৯0-9]+\.\s+)/;
+            srcText.split(/\n/).forEach(function(raw) {
+                raw.trim().split(numberPattern).forEach(function(seg) {
+                    seg = seg.trim();
+                    if (!seg) return;
+                    var line = stripNumberPrefix(seg);
+                    if (!line || isOnlyNumber(line)) return;
+                    lineToSingleItems(line).forEach(function(one) { items.push(one); });
+                });
+            });
+        });
+
+        var wrap = consolidatedPanel.querySelector('.inline-merged-list');
+        if (!wrap) {
+            wrap = document.createElement('div');
+            wrap.className = 'inline-merged-list';
+            consolidatedPanel.appendChild(wrap);
+        }
+        var emptyEl = consolidatedPanel.querySelector('.inline-panel-empty');
+        if (emptyEl) emptyEl.remove();
+        wrap.innerHTML = '';
+        if (!items.length) {
+            var p = document.createElement('p');
+            p.className = 'inline-panel-empty';
+            p.textContent = 'কোনো আইটেম নেই।';
+            consolidatedPanel.appendChild(p);
+            return;
+        }
+        var numberedLines = numberWithBengali(items);
+        var copyText = numberedLines.join('\n');
+        var contentDiv = document.createElement('div');
+        contentDiv.className = 'list-section-content ai-content';
+        contentDiv.textContent = copyText;
+        wrap.appendChild(contentDiv);
+        wrap.setAttribute('data-copy-text', copyText);
+        wrap.onclick = function() {
+            var text = wrap.getAttribute('data-copy-text') || '';
+            if (!text) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() { showCopyToast(); }).catch(function() { fallbackCopy(text); });
+            } else { fallbackCopy(text); }
+        };
+        var hint = document.createElement('div');
+        hint.className = 'copy-hint';
+        hint.textContent = 'ক্লিক করলে লিস্ট কপি হবে — প্রতিটি আইটেম এক লাইনে';
+        wrap.appendChild(hint);
+    }
+
+    function showCopyToast() {
+        var existing = document.querySelector('.consolidated-copy-toast');
+        if (existing) existing.remove();
+        var toast = document.createElement('div');
+        toast.className = 'consolidated-copy-toast';
+        toast.textContent = 'কপি হয়েছে';
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 2500);
+    }
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showCopyToast();
+        } catch (e) {}
+        document.body.removeChild(ta);
+    }
+
+    function setupFlowSelectorAndConsolidated() {
+        if (!flowSelector || !consolidatedPanel) return;
+        var flows = getValidFlowsForConsolidation();
+        flowSelector.innerHTML = '';
+        if (!flows.length) {
+            flowSelector.style.display = 'none';
+            return;
+        }
+        flowSelector.style.display = 'flex';
+        flows.forEach(function(flow, idx) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'flow-consolidated-option';
+            btn.textContent = flow.label;
+            btn.addEventListener('click', function() {
+                // active ক্লাস আপডেট
+                flowSelector.querySelectorAll('.flow-consolidated-option').forEach(function(b){ b.classList.remove('active'); });
+                btn.classList.add('active');
+                buildConsolidatedForFlow(flow);
+            });
+            flowSelector.appendChild(btn);
+            // প্রথমটিকে ডিফল্ট হিসেবে চালাই
+            if (idx === 0) {
+                btn.classList.add('active');
+                buildConsolidatedForFlow(flow);
+            }
+        });
+    }
+
+    function applyUserViewFilter(flow) {
+        var items = document.querySelectorAll('#inlineUserViewPanel .inline-user-item');
+        items.forEach(function(userItem) {
+            var anyVisible = false;
+            var listItems = userItem.querySelectorAll('.inline-list-item');
+            listItems.forEach(function(li) {
+                var createdIso = li.getAttribute('data-created') || '';
+                if (!createdIso) {
+                    li.style.display = 'none';
+                    return;
+                }
+                var d = new Date(createdIso);
+                if (isNaN(d.getTime())) {
+                    li.style.display = 'none';
+                    return;
+                }
+                var minutes = d.getHours() * 60 + d.getMinutes();
+                var sMin = (function(t){var p=t.split(':'),h=parseInt(p[0],10),m=parseInt(p[1],10);return isNaN(h)||isNaN(m)?null:h*60+m;})(flow.start);
+                var eMin = (function(t){var p=t.split(':'),h=parseInt(p[0],10),m=parseInt(p[1],10);return isNaN(h)||isNaN(m)?null:h*60+m;})(flow.end);
+                if (sMin === null || eMin === null) {
+                    li.style.display = 'none';
+                    return;
+                }
+                if (minutes >= sMin && minutes <= eMin) {
+                    li.style.display = '';
+                    anyVisible = true;
+                } else {
+                    li.style.display = 'none';
+                }
+            });
+            userItem.style.display = anyVisible ? '' : 'none';
+        });
+    }
+
+    function setupFlowSelectorForUserView() {
+        if (!flowUserSelector || !userViewPanel) return;
+        var flows = getValidFlowsForConsolidation();
+        flowUserSelector.innerHTML = '';
+        if (!flows.length) {
+            flowUserSelector.style.display = 'none';
+            // সব কিছু দেখাই
+            document.querySelectorAll('#inlineUserViewPanel .inline-user-item, #inlineUserViewPanel .inline-list-item')
+                .forEach(function(el){ el.style.display = ''; });
+            return;
+        }
+        flowUserSelector.style.display = 'flex';
+        flows.forEach(function(flow, idx) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'flow-consolidated-option';
+            btn.textContent = flow.label;
+            btn.addEventListener('click', function() {
+                flowUserSelector.querySelectorAll('.flow-consolidated-option').forEach(function(b){ b.classList.remove('active'); });
+                btn.classList.add('active');
+                applyUserViewFilter(flow);
+            });
+            flowUserSelector.appendChild(btn);
+            if (idx === 0) {
+                btn.classList.add('active');
+                applyUserViewFilter(flow);
+            }
+        });
+    }
+    if (consolidatedBtn && consolidatedPanel) {
+        consolidatedBtn.addEventListener('click', function() {
+            var wasOpen = consolidatedPanel.classList.contains('show');
+            consolidatedPanel.classList.toggle('show');
+            consolidatedBtn.classList.toggle('active', !wasOpen);
+            if (!wasOpen) {
+                // এখন ওপেন হচ্ছে -> Delivery Flow Set এর ফ্লোগুলোর উপর ভিত্তি করে কনসলিডেটেড বানাই
+                setupFlowSelectorAndConsolidated();
+            }
+            if (!wasOpen && userViewPanel) {
+                userViewPanel.classList.remove('show');
+                if (userViewBtn) userViewBtn.classList.remove('active');
+            }
+            updateVisibility();
+        });
+    }
+    if (userViewBtn && userViewPanel) {
+        userViewBtn.addEventListener('click', function() {
+            var wasOpen = userViewPanel.classList.contains('show');
+            userViewPanel.classList.toggle('show');
+            userViewBtn.classList.toggle('active', !wasOpen);
+            if (!wasOpen) {
+                // এখন ওপেন হচ্ছে -> Delivery Flow Set এর ফ্লোগুলোর উপর ভিত্তি করে User View ফিল্টার করি
+                setupFlowSelectorForUserView();
+            } else {
+                // বন্ধ হলে সব ইউজার ও লিস্ট আবার দেখাই
+                document.querySelectorAll('#inlineUserViewPanel .inline-user-item, #inlineUserViewPanel .inline-list-item')
+                    .forEach(function(el){ el.style.display = ''; });
+            }
+            if (!wasOpen && consolidatedPanel) {
+                consolidatedPanel.classList.remove('show');
+                if (consolidatedBtn) consolidatedBtn.classList.remove('active');
+            }
+            updateVisibility();
+        });
+    }
+    // Header back buttons
+    document.querySelectorAll('.inline-panel-back').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var target = btn.getAttribute('data-target');
+            if (target === 'consolidated' && consolidatedPanel && consolidatedBtn) {
+                consolidatedPanel.classList.remove('show');
+                consolidatedBtn.classList.remove('active');
+            } else if (target === 'user' && userViewPanel && userViewBtn) {
+                userViewPanel.classList.remove('show');
+                userViewBtn.classList.remove('active');
+                // সব ইউজার ও লিস্ট আবার দেখাই
+                document.querySelectorAll('#inlineUserViewPanel .inline-user-item, #inlineUserViewPanel .inline-list-item')
+                    .forEach(function(el){ el.style.display = ''; });
+            }
+            updateVisibility();
+        });
+    });
+    document.querySelectorAll('.inline-user-click').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var item = btn.closest('.inline-user-item');
+            var dd = item && item.querySelector('.inline-lists-dropdown');
+            if (dd) { dd.classList.toggle('show'); item.classList.toggle('open'); }
+        });
+    });
+})();
+</script>
 {% endblock %}

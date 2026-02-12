@@ -1,0 +1,41 @@
+{% extends 'shop/base.html' %}
+{% block title %}Consolidated List - EasyShop{% endblock %}
+{% block extra_css %}
+.summary-admin { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%); min-height: 100vh; background-attachment: fixed; color: white; padding: 24px 0; }
+.summary-admin h1, .summary-admin h2 { color: white; }
+.back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; text-decoration: none; }
+.back-link:hover { text-decoration: underline; }
+.consolidated-actions { margin: 16px 0; display: flex; gap: 12px; flex-wrap: wrap; }
+.consolidated-actions a { padding: 10px 18px; background: #374151; color: white; border-radius: 8px; text-decoration: none; }
+.consolidated-actions a:hover { background: #4b5563; }
+.consolidated-actions .pdf-btn { background: #059669; }
+.consolidated-actions .pdf-btn:hover { background: #047857; }
+.merged-list { background: #374151; padding: 24px; border-radius: 12px; margin-top: 20px; }
+.merged-list ul { list-style: none; padding: 0; margin: 0; }
+.merged-list li { padding: 10px 0; border-bottom: 1px solid #4b5563; color: #d1d5db; font-size: 1.05rem; white-space: pre-wrap; }
+.merged-list li:last-child { border-bottom: none; }
+@media (max-width: 600px) { .summary-admin .container { padding: 0 16px; } }
+{% endblock %}
+{% block content %}
+<div class="summary-admin">
+<div class="container">
+    <a href="{% url 'management_dashboard' %}?filter={{ filter_status }}" class="back-link">← লিস্ট এন্ট্রিতে ফিরে যান</a>
+    <h1 style="margin-bottom: 8px;">📋 Consolidated List</h1>
+    <p style="color: #9ca3af; margin-bottom: 16px;">সব বাজার লিস্টের পয়েন্ট একসাথে (যেমন আছে)</p>
+    <div class="consolidated-actions">
+        <a href="{% url 'list_entry_consolidated_pdf' %}?filter={{ filter_status }}" class="pdf-btn">📄 পিডিএফ ডাউনলোড</a>
+    </div>
+    {% if merged_items %}
+    <div class="merged-list">
+        <ul>
+            {% for item in merged_items %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <p style="color: #9ca3af; margin-top: 20px;">কোনো আইটেম নেই।</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

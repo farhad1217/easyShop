@@ -1,46 +1,1482 @@
 {% extends 'shop/base.html' %}
-{% block title %}ইউজার ডাইরেক্টরি - EasyShop{% endblock %}
+{% load shop_extras %}
+{% block title %}Delivery Path setup - EasyShop{% endblock %}
 {% block extra_css %}
-.dir-admin { background: #1f2937; min-height: 100vh; color: white; padding: 24px 0; }
-.dir-admin .back-link { color: #60a5fa; margin-bottom: 20px; display: inline-block; }
-.dir-admin h1 { color: white; margin-bottom: 24px; }
-.profile-card {
-    background: #374151;
-    padding: 20px;
+.delivery-manager {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: white;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 40px 24px 64px;
+    position: relative;
+    overflow-x: hidden;
+}
+.delivery-manager::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.08), transparent 50%),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(16,185,129,0.06), transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+}
+.delivery-manager .container { position: relative; z-index: 1; }
+.dp-container { max-width: 900px; margin: 0 auto; }
+.dp-header {
+    margin-bottom: 36px;
+    position: relative;
+}
+.dp-back-icon {
+    position: absolute;
+    top: -52px;
+    left: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.9);
     border-radius: 12px;
-    margin-bottom: 12px;
+    color: #047857;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(5,150,105,0.15);
+    transition: all 0.2s;
+}
+.dp-back-icon:hover { background: #fff; color: #065f46; transform: translateX(-2px); }
+.dp-header .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #047857;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    margin-bottom: 24px;
+    padding: 10px 16px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(5,150,105,0.1);
+    transition: all 0.3s ease;
+}
+.dp-header .back-link:hover {
+    color: #065f46;
+    background: #fff;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(5,150,105,0.15);
+    transform: translateX(-2px);
+}
+.dp-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: white;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.03em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.dp-header .sub {
+    color: #a7f3d0;
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 0.95;
+}
+.user-block {
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(5,150,105,0.08), 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255,255,255,0.9);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s ease;
+}
+.user-block:hover {
+    box-shadow: 0 12px 40px rgba(5,150,105,0.12), 0 4px 12px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+    border-color: rgba(16,185,129,0.2);
+}
+.user-block .username-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    margin-bottom: 14px;
+}
+.user-block .username-row .label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #059669;
+}
+.user-block .username-row .name {
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #064e3b;
+}
+.order-list-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    border: none;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-left: auto;
+    box-shadow: 0 4px 14px rgba(5,150,105,0.35);
+    transition: all 0.25s ease;
+}
+.order-list-btn:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5,150,105,0.4);
+}
+.address-row {
+    margin-bottom: 14px;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(16,185,129,0.2);
+}
+.address-row .label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #047857;
     display: block;
+    margin-bottom: 6px;
+}
+.address-row .addr-text { font-size: 1rem; color: #064e3b; font-weight: 500; }
+.address-row .edit-addr-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 10px;
+    margin-left: 10px;
+    vertical-align: middle;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+}
+.address-row .edit-addr-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(5,150,105,0.4);
+}
+.address-edit-wrap {
+    display: none;
+    margin-top: 14px;
+    padding: 18px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 14px;
+    border: 1px solid rgba(16,185,129,0.2);
+}
+.address-edit-wrap.active { display: block; }
+.address-edit-wrap input {
+    width: 100%;
+    max-width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #a7f3d0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+.address-edit-wrap input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
+}
+.address-edit-wrap .save-addr-btn {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.9rem;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(5,150,105,0.35);
+}
+.address-edit-wrap .save-addr-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5,150,105,0.4);
+}
+.delivery-path-row {
+    margin-top: 18px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(16,185,129,0.25);
+}
+.delivery-path-row .label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #047857;
+    display: block;
+    margin-bottom: 8px;
+}
+.delivery-path-row .path-text {
+    font-size: 0.95rem;
+    color: #064e3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    font-weight: 500;
+}
+.delivery-path-row .path-text.full-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.delivery-path-row .edit-path-link {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 10px rgba(5,150,105,0.3);
+}
+.delivery-path-row .edit-path-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(5,150,105,0.4);
+}
+.path-form-wrap {
+    display: none;
+    margin-top: 20px;
+    padding: 24px;
+    background: linear-gradient(160deg, #ecfdf5 0%, #a7f3d0 50%, #6ee7b7 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(16,185,129,0.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.path-form-wrap.active { display: block; }
+.path-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.path-inputs .field {
+    flex: 1;
+    min-width: 80px;
+}
+.path-inputs .field label {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    color: #047857;
+}
+.path-inputs .field input {
+    width: 100%;
+    padding: 12px 10px;
+    border: 2px solid #6ee7b7;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+.path-inputs .field input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
+}
+.path-inputs .field input.error {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+.save-path-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(4,120,87,0.4);
+}
+.save-path-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(4,120,87,0.45);
+}
+.dp-empty {
+    text-align: center;
+    padding: 64px 32px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 20px;
+    color: #047857;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 2px dashed rgba(16,185,129,0.3);
+    backdrop-filter: blur(8px);
+}
+.dp-funnel-card {
+    margin-bottom: 24px;
+    background: rgba(255,255,255,0.98);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(5,150,105,0.12), 0 0 0 1px rgba(16,185,129,0.1);
+    border: 2px solid rgba(16,185,129,0.2);
+    transition: box-shadow 0.3s ease;
+}
+.dp-funnel-card:hover { box-shadow: 0 12px 40px rgba(5,150,105,0.15); }
+.dp-funnel-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 24px;
+    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: white;
+    text-align: left;
+    transition: all 0.25s ease;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+}
+.dp-funnel-trigger:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    transform: translateY(-1px);
+}
+.dp-funnel-trigger[aria-expanded="true"] .dp-funnel-chevron { transform: rotate(180deg); }
+.dp-funnel-icon { font-size: 1.5rem; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2)); }
+.dp-funnel-chevron { margin-left: auto; font-size: 0.8rem; transition: transform 0.3s ease; opacity: 0.9; }
+.dp-funnel-areas {
+    padding: 24px;
+    background: linear-gradient(180deg, #f0fdfa 0%, #fff 100%);
+    border-top: 1px solid rgba(16,185,129,0.15);
+}
+.dp-funnel-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 12px;
+    border: 1px solid rgba(16,185,129,0.2);
+}
+.dp-breadcrumb { font-size: 0.9rem; color: #047857; font-weight: 600; }
+.dp-breadcrumb span { color: #9ca3af; margin: 0 6px; }
+.dp-collapse-all {
+    margin-left: auto;
+    padding: 8px 16px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.dp-collapse-all:hover { background: #e5e7eb; color: #1f2937; }
+.dp-area-list { margin: 0; padding: 0; list-style: none; }
+.dp-area-item { margin-bottom: 10px; }
+.dp-area-click {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(16,185,129,0.25);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #064e3b;
+    text-transform: uppercase;
+    transition: all 0.25s ease;
+}
+.dp-area-click:hover {
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(5,150,105,0.2);
+}
+.dp-area-icon { font-size: 1.1rem; }
+.dp-area-chevron { font-size: 0.7rem; margin-left: auto; transition: transform 0.3s ease; }
+.dp-area-item.open .dp-area-chevron { transform: rotate(180deg); }
+.dp-section-dropdown {
+    margin: 12px 0 12px 16px;
+    padding: 16px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 14px;
+    border-left: 4px solid #10b981;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    animation: dp-slideIn 0.25s ease;
+}
+@keyframes dp-slideIn { from { opacity: 0.7; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.dp-section-list { margin: 0; padding: 0; list-style: none; }
+.dp-section-item { margin-bottom: 8px; }
+.dp-section-click {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f0fdf4;
+    border-radius: 10px;
+    border: 1px solid rgba(16,185,129,0.2);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #065f46;
+    transition: all 0.2s ease;
+}
+.dp-section-click:hover {
+    background: #dcfce7;
+    transform: translateX(4px);
+}
+.dp-section-icon { font-size: 1rem; }
+.dp-section-chevron { font-size: 0.65rem; margin-left: auto; transition: transform 0.3s ease; }
+.dp-section-item.open .dp-section-chevron { transform: rotate(180deg); }
+.dp-building-dropdown {
+    margin: 12px 0 12px 16px;
+    padding: 16px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 14px;
+    border-left: 4px solid #34d399;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    animation: dp-slideIn 0.25s ease;
+}
+.dp-building-list { margin: 0; padding: 0; list-style: none; }
+.dp-building-item { margin-bottom: 8px; }
+.dp-building-click {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #e5e7eb;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+.dp-building-click:hover {
+    background: #f3f4f6;
+    border-color: #10b981;
+    transform: translateX(4px);
+}
+.dp-building-icon { font-size: 1rem; }
+.dp-building-chevron { font-size: 0.6rem; margin-left: auto; transition: transform 0.3s ease; }
+.dp-building-item.open .dp-building-chevron { transform: rotate(180deg); }
+.dp-profile-click {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+    border-radius: 10px;
+    border: 1px solid #fde047;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #713f12;
+    transition: all 0.2s ease;
+}
+.dp-profile-click:hover {
+    background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(250,204,21,0.3);
+}
+.dp-profile-icon { font-size: 1rem; }
+.dp-profile-chevron { font-size: 0.6rem; margin-left: auto; transition: transform 0.3s ease; }
+.dp-profile-item.open .dp-profile-chevron { transform: rotate(180deg); }
+.dp-profiles-dropdown {
+    margin: 12px 0 12px 16px;
+    padding: 20px;
+    background: rgba(255,255,255,0.98);
+    border-radius: 14px;
+    border: 1px solid rgba(16,185,129,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    animation: dp-slideIn 0.25s ease;
+}
+.dp-lists-dropdown {
+    margin: 12px 0 12px 16px;
+    padding: 20px;
+    background: linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 50%, #f0fdfa 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(16,185,129,0.3);
+    box-shadow: 0 4px 24px rgba(5,150,105,0.12);
+    animation: dp-slideIn 0.25s ease;
+    min-width: 340px;
+}
+.dp-pathway-status { font-size: 0.65rem; margin-left: 2px; }
+.dp-pathway-status.empty { color: #dc2626; font-weight: 700; }
+.dp-pathway-link {
+    margin-left: 14px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    transition: all 0.2s ease;
+}
+.dp-pathway-link:hover {
+    background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+    transform: scale(1.05);
+}
+.dp-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: rgba(5,150,105,0.2);
+    color: #047857;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border-radius: 50%;
+}
+.dp-profiles-list { margin: 0; padding: 0; list-style: none; }
+.dp-profiles-list .dp-profile-item { margin-bottom: 8px; }
+.dp-list-link {
+    color: #047857;
+    text-decoration: none;
+    font-weight: 600;
+}
+.dp-list-link:hover { text-decoration: underline; }
+.dp-list-datetime {
+    display: inline-block;
+    padding: 2px 6px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-radius: 4px;
+}
+.df-order-card {
+    background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 50%, #ecfdf5 100%);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 20px rgba(5,150,105,0.15), 0 0 0 1px rgba(16,185,129,0.2);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-left: 4px solid #059669;
+    transition: all 0.35s ease;
+}
+.df-order-card:hover {
+    box-shadow: 0 8px 30px rgba(5,150,105,0.2);
+    transform: translateY(-2px);
+    border-left-color: #047857;
+}
+.df-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.df-card-name { font-weight: 800; font-size: 1rem; color: #064e3b; }
+.df-card-date { font-size: 0.8rem; color: #059669; font-weight: 600; }
+.df-card-pack {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    color: #b91c1c;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 1px solid #fecaca;
+    box-shadow: 0 1px 3px rgba(185,28,28,0.15);
+}
+.df-card-phone {
+    font-size: 0.9rem;
+    color: #047857;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+.df-floor-room {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.df-floor-box, .df-room-box {
+    flex: 1;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid #a7f3d0;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(5,150,105,0.12);
+}
+.df-label {
+    display: block;
+    font-size: 0.65rem;
+    color: #047857;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+.df-value { font-weight: 800; font-size: 0.9rem; color: #064e3b; }
+.df-bazar-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+.df-bazar-part {
+    flex: 1;
+    min-width: 140px;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid #fcd34d;
+    box-shadow: 0 2px 10px rgba(245,158,11,0.2);
+}
+.df-bazar-header {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #92400e;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+.df-bazar-items {
+    margin: 0;
+    padding-left: 18px;
+    list-style: none;
+}
+.df-bazar-items li {
+    position: relative;
+    padding-left: 8px;
+    margin-bottom: 4px;
+    font-size: 0.88rem;
+    color: #1e293b;
+    line-height: 1.45;
+    font-weight: 500;
+}
+.df-bazar-items li::before {
+    content: '•';
+    position: absolute;
+    left: -10px;
+    top: 0;
+    color: #d97706;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+.df-empty { color: #9ca3af; font-style: italic; font-size: 0.85rem; }
+.df-card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(16,185,129,0.2);
+    flex-wrap: wrap;
+}
+.df-pending-badge {
+    color: #b45309;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 12px;
+    background: rgba(180, 83, 9, 0.15);
+    border-radius: 8px;
+}
+.df-btn-deliver, .df-btn-decline {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.df-btn-deliver {
+    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(5,150,105,0.4);
+}
+.df-btn-deliver:hover {
+    background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(5,150,105,0.45);
+}
+.df-btn-decline {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 50%, #991b1b 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(220,38,38,0.35);
+}
+.df-btn-decline:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(185,28,28,0.4);
+}
+.df-btn-approve.df-action-link {
+    display: inline-block;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
     color: white;
     text-decoration: none;
-    transition: background 0.2s;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    transition: all 0.3s;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.35);
 }
-.profile-card:hover { background: #4b5563; }
-.profile-card .username { font-weight: 700; font-size: 1.1rem; }
-.profile-card .info { color: #d1d5db; font-size: 0.9rem; margin-top: 4px; }
-.profile-msg-btn { width: 44px; height: 44px; border-radius: 10px; background: #374151; color: white; display: flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; }
-.profile-msg-btn:hover { background: #4b5563; }
-@media (max-width: 600px) { .dir-admin .container { padding: 0 16px; } }
+.df-btn-approve.df-action-link:hover {
+    background: #3b82f6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(59,130,246,0.4);
+}
+.dp-funnel-empty { margin: 0; color: #047857; font-weight: 500; }
+.dp-filter-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+.dp-filter-tab {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 2px solid rgba(16,185,129,0.3);
+    background: rgba(255,255,255,0.8);
+    color: #047857;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+}
+.dp-filter-tab:hover {
+    background: rgba(255,255,255,0.95);
+    border-color: #10b981;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(5,150,105,0.2);
+}
+.dp-filter-tab.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(5,150,105,0.35);
+}
+.dp-filter-tab .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+.dp-filter-tab:not(.active) .badge {
+    background: #10b981;
+    color: white;
+}
+.dp-filter-tab:not(.active)[data-filter="pending"] .badge {
+    background: #dc2626;
+    color: white;
+}
+.dp-filter-tab.active .badge {
+    background: rgba(255,255,255,0.25);
+    color: white;
+}
+.dp-filter-tab.active[data-filter="pending"] .badge {
+    background: #fca5a5;
+    color: #991b1b;
+}
+.user-block[data-filter-hide="1"] { display: none !important; }
+.pathway-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.pathway-modal { background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%); border-radius: 20px; width: fit-content; max-width: 95vw; min-width: 320px; max-height: 90vh; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.25); }
+.pathway-modal-header { display: flex; align-items: center; padding: 20px 24px; background: linear-gradient(135deg, #047857 0%, #059669 100%); color: white; }
+.pathway-modal-header h3 { margin: 0; font-size: 1.1rem; }
+.pathway-modal-title { font-size: 0.85rem; flex: 1; margin-left: 12px; }
+.pathway-modal-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; line-height: 1; }
+.pathway-modal-close:hover { background: rgba(255,255,255,0.35); }
+.pathway-modal-body { padding: 24px; overflow-y: auto; max-height: calc(90vh - 80px); }
+.pathway-add-actions { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.pathway-btn { padding: 12px 18px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; }
+.pathway-btn-upload { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; }
+.pathway-btn-camera { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; }
+.pathway-images-grid { display: flex; flex-direction: column; gap: 20px; }
+.pathway-image-row { padding: 12px; background: white; border-radius: 14px; border: 1px solid #e5e7eb; }
+.pathway-image-row .img-wrap { position: relative; width: 100%; border-radius: 12px; overflow: hidden; background: #f3f4f6; }
+.pathway-image-row .img-wrap img { width: 100%; max-width: 100%; height: auto; max-height: 70vh; object-fit: contain; display: block; }
+.pathway-image-row .serial { position: absolute; top: 8px; left: 8px; min-width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: rgba(5,150,105,0.9); color: white; font-weight: 800; font-size: 0.8rem; border-radius: 6px; z-index: 1; }
+.pathway-image-row .actions { display: flex; justify-content: center; gap: 10px; padding-top: 12px; flex-wrap: wrap; }
+.pathway-image-row .replace-btn { width: 40px; height: 40px; border-radius: 10px; border: none; cursor: pointer; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; }
+.pathway-image-row .replace-gallery { background: #e0e7ff; color: #4338ca; }
+.pathway-image-row .replace-camera { background: #d1fae5; color: #047857; }
+.pathway-image-row .replace-delete { background: #fee2e2; color: #b91c1c; }
+.pathway-image-row .note-input { width: 100%; margin-top: 8px; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; }
+.pathway-image-row .note-input:focus { outline: none; border-color: #10b981; }
+.pathway-save-btn { padding: 12px 24px; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+.pathway-save-btn:hover { opacity: 0.9; }
+@media (max-width: 768px) {
+    .dp-container { max-width: 100%; }
+    .dp-funnel-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
+    .dp-collapse-all { margin-left: 0; }
+    .dp-area-click, .dp-section-click, .dp-building-click { padding: 10px 14px; font-size: 0.85rem; }
+    .dp-profile-click { padding: 10px 14px; font-size: 0.85rem; }
+    .dp-lists-dropdown { min-width: 100%; max-width: 100%; }
+    .df-order-card .df-card-actions { flex-direction: row; gap: 10px; }
+    .df-btn-deliver, .df-btn-decline { flex: 1; min-width: 100px; }
+}
+@media (max-width: 600px) {
+    .delivery-manager { padding: 20px 12px; }
+    .dp-header h1 { font-size: 1.5rem; }
+    .dp-header .sub { font-size: 0.9rem; }
+    .dp-funnel-trigger { padding: 14px 18px; font-size: 1rem; }
+    .dp-funnel-areas { padding: 16px; }
+    .dp-filter-tabs { flex-direction: column; gap: 8px; }
+    .dp-filter-tab { min-width: 100%; padding: 12px 16px; }
+    .user-block { padding: 18px; }
+    .username-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .order-list-btn { margin-left: 0; width: 100%; justify-content: center; }
+    .path-inputs { gap: 10px; flex-direction: column; }
+    .path-inputs .field { min-width: 100%; }
+    .path-inputs .field input { font-size: 0.9rem; padding: 10px; }
+    .dp-section-dropdown, .dp-building-dropdown { margin-left: 8px; padding: 12px; }
+    .dp-profiles-dropdown, .dp-lists-dropdown { margin-left: 8px; padding: 12px; min-width: 100%; }
+    .df-order-card { padding: 10px 12px; }
+    .df-floor-room { flex-direction: column; }
+    .df-bazar-part { min-width: 100%; }
+    .df-bazar-items li { font-size: 0.85rem; }
+}
+@media (max-width: 400px) {
+    .delivery-manager { padding: 16px 10px; }
+    .dp-header h1 { font-size: 1.3rem; }
+    .dp-area-click, .dp-section-click, .dp-building-click { font-size: 0.8rem; padding: 8px 12px; }
+    .dp-nav-badge { min-width: 18px; height: 18px; font-size: 0.65rem; }
+    .df-card-name { font-size: 0.85rem; }
+    .df-card-pack { font-size: 0.65rem; padding: 2px 6px; }
+    .df-btn-deliver, .df-btn-decline { padding: 8px 12px; font-size: 0.75rem; }
+}
 {% endblock %}
 {% block content %}
-<div class="dir-admin">
-<div class="container">
-    <a href="{% url 'management_dashboard' %}" class="back-link">← ড্যাশবোর্ডে ফিরে যান</a>
-    <h1>👥 ইউজার ডাইরেক্টরি</h1>
-    <p style="color: #9ca3af; margin-bottom: 24px;">সব রেজিষ্ট্রীকৃত ফ্যামিলি প্রোফাইল</p>
-
-    {% if profiles %}
-    {% for profile in profiles %}
-    <div class="profile-card-wrap" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-        <a href="{% url 'user_profile_detail' profile.user_id %}" class="profile-card" style="flex: 1;">
-            <div class="username">{{ profile.display_name }} (@{{ profile.user.username }})</div>
-            <div class="info">{{ profile.address|truncatewords:15 }} | {{ profile.phone }}</div>
+<div class="delivery-manager">
+<div class="container dp-container">
+    <div class="dp-header">
+        <a href="{% url 'management_dashboard' %}" class="dp-back-icon" title="ড্যাশবোর্ডে ফিরে যান">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </a>
-        <a href="{% url 'messaging_thread' profile.user_id %}" class="profile-msg-btn" title="বার্তা">💬</a>
     </div>
+
+    <div class="dp-funnel-card">
+        <button type="button" class="dp-funnel-trigger" aria-expanded="false">
+            <span class="dp-funnel-icon">📦</span>
+            <span>Delivery Funnel</span>
+            <span class="dp-funnel-chevron">▼</span>
+        </button>
+        <div class="dp-funnel-areas" hidden>
+            {% if area_sections_buildings_profiles_list %}
+                <div class="dp-funnel-toolbar">
+                    <span class="dp-breadcrumb" id="dpBreadcrumb">📍 এলাকা সিলেক্ট করুন</span>
+                    <button type="button" class="dp-collapse-all" id="dpCollapseAll">সব বন্ধ করুন</button>
+                </div>
+                <ul class="dp-area-list">
+                    {% for area, area_count, sections_data, area_pathway_ready in area_sections_buildings_profiles_list %}
+                    <li class="dp-area-item" data-area="{{ area }}">
+                        <span class="dp-area-click" tabindex="0" data-label="{{ area|upper }}"><span class="dp-area-icon">📍</span><span>{{ area|upper }}</span><span class="dp-nav-badge">{{ area_count }}</span><span class="dp-pathway-link" data-area="{{ area }}" data-section="" data-building="" title="Pathway"><span class="dp-pathway-status {% if not area_pathway_ready %}empty{% endif %}">{% if area_pathway_ready %}Pathway Ready{% else %}Pathway Empty{% endif %}</span></span><span class="dp-area-chevron">▼</span></span>
+                        <div class="dp-section-dropdown" hidden>
+                            <ul class="dp-section-list">
+                                {% for sec, sec_count, buildings_data, sec_pathway_ready in sections_data %}
+                                <li class="dp-section-item" data-section="{{ sec }}">
+                                    <span class="dp-section-click" tabindex="0" data-label="{{ sec }}"><span class="dp-section-icon">📁</span><span>{{ sec }}</span><span class="dp-nav-badge">{{ sec_count }}</span><span class="dp-pathway-link" data-area="{{ area }}" data-section="{{ sec }}" data-building="" title="Pathway"><span class="dp-pathway-status {% if not sec_pathway_ready %}empty{% endif %}">{% if sec_pathway_ready %}Pathway Ready{% else %}Pathway Empty{% endif %}</span></span><span class="dp-section-chevron">▼</span></span>
+                                    <div class="dp-building-dropdown" hidden>
+                                        <ul class="dp-building-list">
+                                            {% for bld, bld_count, profiles_data, bld_pathway_ready in buildings_data %}
+                                            <li class="dp-building-item" data-building="{{ bld }}">
+                                                <span class="dp-building-click" tabindex="0" data-label="{{ bld|upper }}"><span class="dp-building-icon">🏢</span><span>{{ bld|upper }}</span><span class="dp-nav-badge">{{ bld_count }}</span><span class="dp-pathway-link" data-area="{{ area }}" data-section="{{ sec }}" data-building="{{ bld }}" title="Pathway"><span class="dp-pathway-status {% if not bld_pathway_ready %}empty{% endif %}">{% if bld_pathway_ready %}Pathway Ready{% else %}Pathway Empty{% endif %}</span></span><span class="dp-building-chevron">▼</span></span>
+                                                <div class="dp-profiles-dropdown" hidden>
+                                                    <ul class="dp-profiles-list">
+                                                        {% for user_id, display_name, phone, floor, room, lists in profiles_data %}
+                                                        <li class="dp-profile-item">
+                                                            <span class="dp-profile-click" tabindex="0"><span class="dp-profile-icon">👤</span><span>{{ display_name|upper }}</span><span class="dp-nav-badge">{{ lists|length }}</span><span class="dp-profile-chevron">▼</span></span>
+                                                            <div class="dp-lists-dropdown" hidden>
+                                                                {% for lst in lists %}
+                                                                <div class="df-order-card">
+                                                                    <div class="df-card-header">
+                                                                        <span class="df-card-name">{{ display_name }}</span>
+                                                                        <span class="df-card-pack">{{ lst.list_id }}</span>
+                                                                        <span class="df-card-date">{{ lst.created_at|date_card }}</span>
+                                                                    </div>
+                                                                    <div class="df-card-phone">📞 {{ phone|default:"-" }}</div>
+                                                                    <div class="df-floor-room">
+                                                                        <div class="df-floor-box"><span class="df-label">FLOOR</span><span class="df-value">{{ floor|default:"-" }}</span></div>
+                                                                        <div class="df-room-box"><span class="df-label">ROOM</span><span class="df-value">{{ room|default:"-" }}</span></div>
+                                                                    </div>
+                                                                    <div class="df-bazar-box">
+                                                                        <div class="df-bazar-part">
+                                                                            <div class="df-bazar-header">🤖 AI দিয়ে জাচাই করা</div>
+                                                                            <ul class="df-bazar-items">
+                                                                                {% for item in lst.ai_items %}
+                                                                                <li>{{ item }}</li>
+                                                                                {% empty %}
+                                                                                <li class="df-empty">AI লিস্ট নেই</li>
+                                                                                {% endfor %}
+                                                                            </ul>
+                                                                        </div>
+                                                                        <div class="df-bazar-part">
+                                                                            <div class="df-bazar-header">📝 মূল লিস্ট</div>
+                                                                            <ul class="df-bazar-items">
+                                                                                {% for item in lst.orig_items %}
+                                                                                <li>{{ item }}</li>
+                                                                                {% empty %}
+                                                                                <li class="df-empty">মূল লিস্ট নেই</li>
+                                                                                {% endfor %}
+                                                                            </ul>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="df-card-actions">
+                                                                        {% if lst.deliver_url and lst.decline_url %}
+                                                                        <button type="button" class="df-btn-deliver df-action-btn" data-url="{{ lst.deliver_url }}" data-action="deliver">DELIVER</button>
+                                                                        <button type="button" class="df-btn-decline df-action-btn" data-url="{{ lst.decline_url }}" data-action="decline">DECLINE</button>
+                                                                        {% else %}
+                                                                        <span class="df-pending-badge">Pending approval</span>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="dp-funnel-empty">কোনো Area নেই। Delivery Path complete করুন।</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pathway Modal -->
+    <div id="pathwayModal" class="pathway-modal-overlay" style="display:none;">
+        <div class="pathway-modal">
+            <div class="pathway-modal-header">
+                <h3>🛤 Pathway Images</h3>
+                <span class="pathway-modal-title" id="pathwayModalTitle">—</span>
+                <button type="button" class="pathway-modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="pathway-modal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button type="button" class="pathway-save-btn" id="pathwaySaveBtn">💾 সেভ করুন</button>
+                </div>
+                <div class="pathway-add-actions">
+                    <label class="pathway-btn pathway-btn-upload">
+                        <input type="file" id="pathwayFileInput" accept="image/*" multiple hidden>
+                        📁 Gallery থেকে আপলোড
+                    </label>
+                    <button type="button" class="pathway-btn pathway-btn-camera" id="pathwayCameraBtn">📷 ক্যামেরা দিয়ে তোলুন</button>
+                </div>
+                <div class="pathway-images-grid" id="pathwayImagesGrid"></div>
+            </div>
+        </div>
+    </div>
+    <input type="file" id="pathwayCameraInput" accept="image/*" capture="environment" hidden>
+
+    <div class="dp-filter-tabs">
+        <button type="button" class="dp-filter-tab" data-filter="completed">Delivery Path Setup Completed <span class="badge" id="badge-completed">{{ completed_count }}</span></button>
+        <button type="button" class="dp-filter-tab active" data-filter="pending">Delivery Path Setup Pending <span class="badge" id="badge-pending">{{ pending_count }}</span></button>
+    </div>
+
+    {% for profile in profiles %}
+    <div class="user-block" data-user-id="{{ profile.user_id }}" data-path-status="{% if profile.user_id in completed_ids %}completed{% else %}pending{% endif %}">
+        <div class="username-row">
+            <span class="label">Username</span>
+            <span class="name">{{ profile.display_name }}</span>
+            <a href="{% url 'user_profile_detail' profile.user_id %}" class="order-list-btn">See Profiles & Order History</a>
+        </div>
+
+        <div class="address-row">
+            <span class="label">Address *</span>
+            <span class="addr-text">{{ profile.address|default:"-" }}</span>
+            <button type="button" class="edit-addr-btn" aria-label="Edit address" title="Edit">✏️</button>
+        </div>
+        <div class="address-edit-wrap">
+            <input type="text" class="addr-input" value="{{ profile.address|default:'' }}" placeholder="Enter address">
+            <button type="button" class="save-addr-btn">Save Address</button>
+        </div>
+
+        <div class="delivery-path-row">
+            <span class="label">Delivery Path:</span>
+            {% if profile.delivery_path_display %}
+            <span class="path-text full-line path-display">{{ profile.delivery_path_display }}</span>
+            <span class="edit-path-link path-edit-trigger">Edit</span>
+            {% else %}
+            <span class="path-text path-display path-empty">—</span>
+            <span class="edit-path-link path-edit-trigger">Add</span>
+            {% endif %}
+        </div>
+
+        <div class="path-form-wrap">
+            <div class="path-inputs">
+                <div class="field">
+                    <label>Area Name</label>
+                    <input type="text" name="area_name" placeholder="">
+                </div>
+                <div class="field">
+                    <label>Section No</label>
+                    <input type="text" name="section_no" placeholder="">
+                </div>
+                <div class="field">
+                    <label>Building Name</label>
+                    <input type="text" name="building_name" placeholder="">
+                </div>
+                <div class="field">
+                    <label>Floor No</label>
+                    <input type="text" name="floor_no" placeholder="">
+                </div>
+                <div class="field">
+                    <label>Room No</label>
+                    <input type="text" name="room_no" placeholder="">
+                </div>
+            </div>
+            <button type="button" class="save-path-btn">Save Path</button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="dp-empty">No user profiles found.</div>
     {% endfor %}
-    {% else %}
-    <p style="color: #9ca3af;">কোনো ইউজার প্রোফাইল নেই।</p>
-    {% endif %}
 </div>
 </div>
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+<script>
+var pathwayUrls = {
+    images: "{% url 'pathway_images' %}",
+    upload: "{% url 'pathway_upload' %}",
+    replaceBase: "{% url 'pathway_replace' 0 %}".replace(/0\/?$/, ''),
+    deleteBase: "{% url 'pathway_delete' 0 %}".replace(/0\/?$/, ''),
+    noteBase: "{% url 'pathway_update_note' 0 %}".replace(/0\/?$/, '')
+};
+</script>
+<script>
+(function() {
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var blocks = document.querySelectorAll('.user-block');
+    var currentFilter = 'pending';
+
+    function applyFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.dp-filter-tab').forEach(function(t) {
+            t.classList.toggle('active', t.getAttribute('data-filter') === filter);
+        });
+        blocks.forEach(function(block) {
+            var status = block.getAttribute('data-path-status');
+            var hide = (filter === 'completed' && status !== 'completed') ||
+                       (filter === 'pending' && status !== 'pending');
+            block.setAttribute('data-filter-hide', hide ? '1' : '0');
+        });
+    }
+
+    document.querySelectorAll('.dp-filter-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            applyFilter(tab.getAttribute('data-filter'));
+        });
+    });
+
+    var funnelTrigger = document.querySelector('.dp-funnel-trigger');
+    var funnelAreas = document.querySelector('.dp-funnel-areas');
+    if (funnelTrigger && funnelAreas) {
+        funnelTrigger.addEventListener('click', function() {
+            var expanded = funnelTrigger.getAttribute('aria-expanded') === 'true';
+            funnelTrigger.setAttribute('aria-expanded', !expanded);
+            funnelAreas.hidden = expanded;
+        });
+    }
+    function updateBreadcrumb() {
+        var bc = document.getElementById('dpBreadcrumb');
+        if (!bc) return;
+        var openArea = document.querySelector('.dp-area-item.open .dp-area-click');
+        var openSec = document.querySelector('.dp-section-item.open .dp-section-click');
+        var openBld = document.querySelector('.dp-building-item.open .dp-building-click');
+        var parts = ['📍 Delivery Funnel'];
+        if (openArea) parts.push(openArea.getAttribute('data-label') || '');
+        if (openSec) parts.push(openSec.getAttribute('data-label') || '');
+        if (openBld) parts.push(openBld.getAttribute('data-label') || '');
+        bc.innerHTML = parts.filter(Boolean).join(' <span>›</span> ') || '📍 এলাকা সিলেক্ট করুন';
+    }
+    function collapseAll() {
+        document.querySelectorAll('.dp-funnel-areas .dp-section-dropdown, .dp-funnel-areas .dp-building-dropdown, .dp-funnel-areas .dp-profiles-dropdown, .dp-funnel-areas .dp-lists-dropdown').forEach(function(dd) {
+            dd.hidden = true;
+        });
+        document.querySelectorAll('.dp-area-item, .dp-section-item, .dp-building-item, .dp-profile-item').forEach(function(el) {
+            el.classList.remove('open');
+        });
+        updateBreadcrumb();
+    }
+    function scrollToEl(el) {
+        if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    document.getElementById('dpCollapseAll') && document.getElementById('dpCollapseAll').addEventListener('click', collapseAll);
+    document.querySelectorAll('.dp-area-click').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var item = btn.closest('.dp-area-item');
+            var dd = item && item.querySelector('.dp-section-dropdown');
+            if (!dd) return;
+            var isOpen = !dd.hidden;
+            dd.hidden = isOpen;
+            item.classList.toggle('open', !isOpen);
+            updateBreadcrumb();
+            if (!isOpen) scrollToEl(dd);
+        });
+    });
+    document.querySelectorAll('.dp-section-click').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var item = btn.closest('.dp-section-item');
+            var dd = item && item.querySelector('.dp-building-dropdown');
+            if (!dd) return;
+            var isOpen = !dd.hidden;
+            dd.hidden = isOpen;
+            item.classList.toggle('open', !isOpen);
+            updateBreadcrumb();
+            if (!isOpen) scrollToEl(dd);
+        });
+    });
+    document.querySelectorAll('.dp-building-click').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var item = btn.closest('.dp-building-item');
+            var dd = item && item.querySelector('.dp-profiles-dropdown');
+            if (!dd) return;
+            var isOpen = !dd.hidden;
+            dd.hidden = isOpen;
+            item.classList.toggle('open', !isOpen);
+            updateBreadcrumb();
+            if (!isOpen) scrollToEl(dd);
+        });
+    });
+    document.querySelectorAll('.dp-profile-click').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var item = btn.closest('.dp-profile-item');
+            var dd = item && item.querySelector('.dp-lists-dropdown');
+            if (!dd) return;
+            var isOpen = !dd.hidden;
+            dd.hidden = isOpen;
+            item.classList.toggle('open', !isOpen);
+            if (!isOpen) scrollToEl(dd);
+        });
+    });
+
+    (function pathwayModal() {
+        var modal = document.getElementById('pathwayModal');
+        var titleEl = document.getElementById('pathwayModalTitle');
+        var grid = document.getElementById('pathwayImagesGrid');
+        var fileInput = document.getElementById('pathwayFileInput');
+        var cameraBtn = document.getElementById('pathwayCameraBtn');
+        var cameraInput = document.getElementById('pathwayCameraInput');
+        var closeBtn = modal && modal.querySelector('.pathway-modal-close');
+        var pathData = { area: '', section: '', building: '' };
+        var lastPathwayLink = null;
+
+        function openModal(area, section, building, linkEl) {
+            pathData = { area: area || '', section: section || '', building: building || '' };
+            lastPathwayLink = linkEl;
+            var parts = [area];
+            if (section) parts.push(section);
+            if (building) parts.push(building);
+            titleEl.textContent = parts.join(' › ') || '—';
+            modal.style.display = 'flex';
+            loadImages();
+        }
+        function closeModal() { modal.style.display = 'none'; }
+        function loadImages() {
+            var q = '?area=' + encodeURIComponent(pathData.area) + '&section=' + encodeURIComponent(pathData.section) + '&building=' + encodeURIComponent(pathData.building);
+            fetch(pathwayUrls.images + q, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    grid.innerHTML = '';
+                    var hasImages = data.success && data.images && data.images.length;
+                    if (lastPathwayLink) {
+                        var statusEl = lastPathwayLink.querySelector('.dp-pathway-status');
+                        if (statusEl) { statusEl.textContent = hasImages ? 'Pathway Ready' : 'Pathway Empty'; statusEl.classList.toggle('empty', !hasImages); }
+                    }
+                    if (hasImages) {
+                        data.images.forEach(function(img, i) {
+                            var row = document.createElement('div');
+                            row.className = 'pathway-image-row';
+                            row.setAttribute('data-img-id', img.id);
+                            var noteVal = (img.note || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            row.innerHTML = '<div class="img-wrap"><span class="serial">' + (i + 1) + '</span><img src="' + (img.url || '') + '" alt=""></div><div class="actions"><input type="file" accept="image/*" class="pathway-replace-gallery-input" data-id="' + img.id + '" hidden><button type="button" class="replace-btn replace-gallery" title="Gallery থেকে প্রতিস্থাপন">📁</button><input type="file" accept="image/*" capture="environment" class="pathway-replace-camera-input" data-id="' + img.id + '" hidden><button type="button" class="replace-btn replace-camera" title="ক্যামেরা দিয়ে প্রতিস্থাপন">📷</button><button type="button" class="replace-btn replace-delete" title="মুছুন">🗑️</button></div><input type="text" class="note-input" placeholder="নোট লিখুন..." value="' + noteVal + '" data-id="' + img.id + '">';
+                            grid.appendChild(row);
+                            var galInp = row.querySelector('.pathway-replace-gallery-input');
+                            var camInp = row.querySelector('.pathway-replace-camera-input');
+                            row.querySelector('.replace-gallery').addEventListener('click', function() { galInp.click(); });
+                            row.querySelector('.replace-camera').addEventListener('click', function() { camInp.click(); });
+                            row.querySelector('.replace-delete').addEventListener('click', function() {
+                                if (confirm('এই ছবি মুছবেন?')) {
+                                    var fd = new FormData();
+                                    fd.append('csrfmiddlewaretoken', csrf);
+                                    fetch(pathwayUrls.deleteBase + img.id + '/', { method: 'POST', body: fd })
+                                        .then(function(r) { return r.json(); })
+                                        .then(function(d) { if (d.success) { row.remove(); if (lastPathwayLink && !grid.querySelector('.pathway-image-row')) { var s = lastPathwayLink.querySelector('.dp-pathway-status'); if (s) { s.textContent = 'Pathway Empty'; s.classList.add('empty'); } } } });
+                                }
+                            });
+                            galInp.addEventListener('change', function() { if (this.files.length) doReplace(img.id, this.files[0], row); this.value = ''; });
+                            camInp.addEventListener('change', function() { if (this.files.length) doReplace(img.id, this.files[0], row); this.value = ''; });
+                            row.querySelector('.note-input').addEventListener('blur', function() {
+                                var fd = new FormData();
+                                fd.append('csrfmiddlewaretoken', csrf);
+                                fd.append('note', this.value || '');
+                                fetch(pathwayUrls.noteBase + img.id + '/', { method: 'POST', body: fd }).then(function(r) { return r.json(); });
+                            });
+                        });
+                    }
+                });
+        }
+        function doReplace(id, file, row) {
+            var fd = new FormData();
+            fd.append('csrfmiddlewaretoken', csrf);
+            fd.append('image', file);
+            fetch(pathwayUrls.replaceBase + id + '/', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success && data.url && row) {
+                        var img = row.querySelector('.img-wrap img');
+                        if (img) img.src = data.url;
+                    }
+                });
+        }
+        function doUpload(file) {
+            var fd = new FormData();
+            fd.append('csrfmiddlewaretoken', csrf);
+            fd.append('image', file);
+            fd.append('area', pathData.area);
+            fd.append('section', pathData.section);
+            fd.append('building', pathData.building);
+            fetch(pathwayUrls.upload, { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) { loadImages(); if (lastPathwayLink) { var s = lastPathwayLink.querySelector('.dp-pathway-status'); if (s) { s.textContent = 'Pathway Ready'; s.classList.remove('empty'); } } }
+                });
+        }
+        document.querySelectorAll('.dp-pathway-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openModal(this.getAttribute('data-area'), this.getAttribute('data-section') || '', this.getAttribute('data-building') || '', this);
+            });
+        });
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
+        fileInput.addEventListener('change', function() {
+            for (var i = 0; i < this.files.length; i++) doUpload(this.files[i]);
+            this.value = '';
+        });
+        cameraBtn.addEventListener('click', function() { cameraInput.click(); });
+        cameraInput.addEventListener('change', function() {
+            if (this.files.length) doUpload(this.files[0]);
+            this.value = '';
+        });
+        document.getElementById('pathwaySaveBtn').addEventListener('click', function() {
+            closeModal();
+        });
+    })();
+
+    document.querySelectorAll('.df-action-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var url = this.getAttribute('data-url');
+            var action = this.getAttribute('data-action');
+            if (!url) return;
+            if (action === 'decline' && !confirm('প্রত্যাখ্যান করবেন?')) return;
+            var card = this.closest('.df-order-card');
+            var origText = this.textContent;
+            this.disabled = true;
+            this.textContent = '...';
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrf,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'csrfmiddlewaretoken=' + encodeURIComponent(csrf)
+            }).then(function(r) {
+                if (r.headers.get('content-type') && r.headers.get('content-type').indexOf('json') !== -1) {
+                    return r.json();
+                }
+                return { success: r.ok };
+            }).then(function(data) {
+                if (data && data.success && card) {
+                    var dec = function(badge) {
+                        if (badge) {
+                            var n = parseInt(badge.textContent, 10) || 0;
+                            badge.textContent = Math.max(0, n - 1);
+                        }
+                    };
+                    var profileItem = card.closest('.dp-profile-item');
+                    var buildingItem = profileItem && profileItem.closest('.dp-building-item');
+                    var sectionItem = buildingItem && buildingItem.closest('.dp-section-item');
+                    var areaItem = sectionItem && sectionItem.closest('.dp-area-item');
+                    if (profileItem) dec(profileItem.querySelector('.dp-nav-badge'));
+                    if (buildingItem) dec(buildingItem.querySelector('.dp-nav-badge'));
+                    if (sectionItem) dec(sectionItem.querySelector('.dp-nav-badge'));
+                    if (areaItem) dec(areaItem.querySelector('.dp-nav-badge'));
+                    card.style.transition = 'opacity 0.3s ease';
+                    card.style.opacity = '0';
+                    setTimeout(function() { card.remove(); }, 300);
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                }
+            }).catch(function() {
+                btn.disabled = false;
+                btn.textContent = origText;
+            });
+        });
+    });
+
+    function updateBadges() {
+        var completed = 0, pending = 0;
+        blocks.forEach(function(b) {
+            if (b.getAttribute('data-path-status') === 'completed') completed++;
+            else pending++;
+        });
+        var bc = document.getElementById('badge-completed');
+        var bp = document.getElementById('badge-pending');
+        if (bc) bc.textContent = completed;
+        if (bp) bp.textContent = pending;
+    }
+
+    applyFilter('pending');
+
+    document.querySelectorAll('.user-block').forEach(function(block) {
+        var userId = block.getAttribute('data-user-id');
+        var pathDisplay = block.querySelector('.path-display');
+        var pathEditTrigger = block.querySelector('.path-edit-trigger');
+        var pathFormWrap = block.querySelector('.path-form-wrap');
+        var pathInputs = block.querySelectorAll('.path-form-wrap input[name]');
+        var savePathBtn = block.querySelector('.save-path-btn');
+        var editAddrBtn = block.querySelector('.edit-addr-btn');
+        var addrText = block.querySelector('.addr-text');
+        var addrEditWrap = block.querySelector('.address-edit-wrap');
+        var addrInput = block.querySelector('.addr-input');
+        var saveAddrBtn = block.querySelector('.save-addr-btn');
+
+        pathEditTrigger.addEventListener('click', function() {
+            pathFormWrap.classList.add('active');
+            pathDisplay.style.display = 'none';
+            pathEditTrigger.style.display = 'none';
+            pathInputs.forEach(function(inp) { inp.value = ''; inp.classList.remove('error'); });
+        });
+
+        savePathBtn.addEventListener('click', function() {
+            var data = {};
+            var empty = [];
+            pathInputs.forEach(function(inp) {
+                var val = (inp.value || '').trim();
+                data[inp.name] = val;
+                inp.classList.remove('error');
+                if (!val) empty.push(inp);
+            });
+            if (empty.length) {
+                alert('All 5 fields are required. Please fill in every field.');
+                empty.forEach(function(inp) { inp.classList.add('error'); });
+                return;
+            }
+            var formData = new FormData();
+            formData.append('csrfmiddlewaretoken', csrf);
+            Object.keys(data).forEach(function(k) { formData.append(k, data[k]); });
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/management/profile/' + userId + '/save-delivery-path/');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                var r = JSON.parse(xhr.responseText);
+                if (r.success) {
+                    pathDisplay.textContent = r.delivery_path;
+                    pathDisplay.classList.remove('path-empty');
+                    pathDisplay.classList.add('full-line');
+                    pathFormWrap.classList.remove('active');
+                    pathDisplay.style.display = 'inline';
+                    pathEditTrigger.textContent = 'Edit';
+                    pathEditTrigger.style.display = 'inline';
+                    block.setAttribute('data-path-status', 'completed');
+                    updateBadges();
+                    applyFilter(currentFilter);
+                }
+            };
+            xhr.send(formData);
+        });
+
+        editAddrBtn.addEventListener('click', function() {
+            addrEditWrap.classList.toggle('active');
+            if (addrEditWrap.classList.contains('active')) addrInput.focus();
+        });
+
+        saveAddrBtn.addEventListener('click', function() {
+            var addr = (addrInput.value || '').trim();
+            if (!addr) { alert('Address is required.'); return; }
+            var formData = new FormData();
+            formData.append('address', addr);
+            formData.append('csrfmiddlewaretoken', csrf);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/management/profile/' + userId + '/update-address/');
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.onload = function() {
+                var r = JSON.parse(xhr.responseText);
+                if (r.success) {
+                    addrText.textContent = r.address;
+                    addrEditWrap.classList.remove('active');
+                }
+            };
+            xhr.send(formData);
+        });
+    });
+})();
+</script>
 {% endblock %}

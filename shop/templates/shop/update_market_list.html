@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container" style="max-width: 560px;">
     <div class="card">
-        <h2 style="margin-bottom: 20px;">✏️ লিস্ট আপডেট (#{{ market_list.list_id }})</h2>
+        <h2 style="margin-bottom: 20px;">✏️ লিস্ট আপডেট ({{ market_list.list_id }})</h2>
         <form method="post">
             {% csrf_token %}
             {{ form }}

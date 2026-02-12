@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import FamilyProfile, MarketList, MarketListItem, Notice, Conversation, Message, MarketListComment
+from .models import FamilyProfile, MarketList, MarketListItem, Notice, Conversation, Message, MarketListComment, Pathway, PathwayImage
 
 
 class MarketListItemInline(admin.TabularInline):
@@ -56,3 +56,14 @@ class MarketListCommentAdmin(admin.ModelAdmin):
     def body_preview(self, obj):
         return (obj.body or '')[:40] + '...' if len(obj.body or '') > 40 else (obj.body or '-')
     body_preview.short_description = 'Body'
+
+
+class PathwayImageInline(admin.TabularInline):
+    model = PathwayImage
+    extra = 0
+
+
+@admin.register(Pathway)
+class PathwayAdmin(admin.ModelAdmin):
+    list_display = ['area_name', 'section_no', 'building_name', 'created_at']
+    inlines = [PathwayImageInline]

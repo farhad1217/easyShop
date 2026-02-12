@@ -1,0 +1,78 @@
+{% extends 'shop/base.html' %}
+{% block title %}Trash - EasyShop{% endblock %}
+{% block extra_css %}
+.trash-theme { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%) !important; min-height: 100vh; background-attachment: fixed; color: white; }
+.trash-theme .container { max-width: 800px; }
+.trash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 12px; }
+.trash-header h1 { font-size: 1.4rem; margin: 0; }
+.trash-back { color: #60a5fa; text-decoration: none; font-weight: 600; }
+.trash-back:hover { text-decoration: underline; }
+.trash-card {
+    background: #374151;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid #4b5563;
+    opacity: 0.9;
+}
+.trash-card .row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 8px; }
+.trash-card .row:last-of-type { margin-bottom: 0; }
+.trash-card .label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+.trash-card .val { font-size: 0.95rem; color: #e5e7eb; }
+.trash-card .deleted-at { font-size: 0.8rem; color: #fbbf24; margin-top: 8px; }
+.trash-card .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+.trash-card .btn-restore { padding: 8px 16px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+.trash-card .btn-restore:hover { background: #10b981; color: white; }
+.trash-card .btn-permanent { padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+.trash-card .btn-permanent:hover { background: #ef4444; }
+.trash-empty { text-align: center; padding: 48px 24px; color: #9ca3af; }
+.trash-empty a { color: #60a5fa; }
+@media (max-width: 768px) {
+    .trash-theme .container { padding: 0 16px; max-width: 100%; }
+    .trash-header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 600px) {
+    .trash-card { padding: 16px; }
+    .trash-card .row { flex-direction: column; }
+    .trash-card .row > div { min-width: 100% !important; }
+    .trash-card .actions { flex-direction: column; }
+    .trash-card .btn-restore, .trash-card .btn-permanent { width: 100%; display: block !important; text-align: center; }
+}
+{% endblock %}
+{% block content %}
+<div class="trash-theme">
+<div class="container">
+    <div class="trash-header">
+        <div>
+            <a href="{% url 'user_profiles' %}" class="trash-back">← User Profiles এ ফিরে যান</a>
+            <h1 style="margin-top: 12px;">🗑️ Trash Folder</h1>
+        </div>
+    </div>
+
+    {% for profile in profiles %}
+    <div class="trash-card">
+        <div class="row">
+            <div><span class="label">Full Name</span><div class="val">{{ profile.full_name|default:"—" }}</div></div>
+            <div><span class="label">Phone</span><div class="val">{{ profile.phone|default:"—" }}</div></div>
+        </div>
+        <div class="row">
+            <div style="flex: 1; min-width: 200px;"><span class="label">Address</span><div class="val">{{ profile.address|default:"—" }}</div></div>
+        </div>
+        <div class="deleted-at">মুছে ফেলা হয়েছে: {{ profile.deleted_at|date:"d/m/Y H:i" }}</div>
+        <div class="actions">
+            <form method="post" action="{% url 'restore_profile' profile.user_id %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-restore">পুনরুদ্ধার (Restore)</button>
+            </form>
+            <form method="post" action="{% url 'permanent_delete_profile' profile.user_id %}" style="display: inline;" onsubmit="return confirm('স্থায়ীভাবে মুছবেন? এই কাজ ফেরানো যাবে না।');">
+                {% csrf_token %}
+                <button type="submit" class="btn-permanent">স্থায়ীভাবে মুছুন</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="trash-empty">ট্র্যাশ ফোল্ডার খালি। <a href="{% url 'user_profiles' %}">User Profiles</a> এ ফিরে যান।</div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

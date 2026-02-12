@@ -1,5 +1,6 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -7,11 +8,12 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .models import MarketList, FamilyProfile, Notice, Conversation, Message, MarketListComment
-from .forms import FamilyRegistrationForm, MarketListForm, NoticeForm, MessageForm, MarketListCommentForm
+from .models import MarketList, FamilyProfile, Notice, Conversation, Message, MarketListComment, Pathway, PathwayImage, DeliveryFlow
+from .forms import FamilyRegistrationForm, MarketListForm, NoticeForm, MessageForm, MarketListCommentForm, ProfileEditForm, PasswordChangeForm
 
 
 def landing_page(request):
@@ -26,10 +28,7 @@ def family_register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'রেজিষ্ট্রেশন সফল!')
             return redirect('family_dashboard')
-        else:
-            messages.error(request, 'দয়া করে ভুলগুলো ঠিক করুন।')
     else:
         form = FamilyRegistrationForm()
     return render(request, 'shop/family_register.html', {'form': form})
@@ -38,24 +37,33 @@ def family_register(request):
 def family_login(request):
     if request.user.is_authenticated and not request.user.is_staff:
         return redirect('family_dashboard')
+    login_error = None
     if request.method == 'POST':
+        phone = (request.POST.get('phone') or '').replace(' ', '').strip()
+        password = request.POST.get('password', '')
         username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = None
+        if phone:
+            try:
+                profile = FamilyProfile.objects.get(phone=phone, is_deleted=False)
+                user = authenticate(request, username=profile.user.username, password=password)
+            except (FamilyProfile.DoesNotExist, FamilyProfile.MultipleObjectsReturned):
+                pass
+        if not user and username:
+            user = authenticate(request, username=username, password=password)
         if user is not None:
             if user.is_staff:
-                messages.error(request, 'এডমিন লগইন জন্য ম্যানেজমেন্ট সেকশনে যান।')
                 return render(request, 'shop/family_login.html')
             login(request, user)
             return redirect('family_dashboard')
-        else:
-            messages.error(request, 'ইউজারনেম বা পাসওয়ার্ড ভুল।')
-    return render(request, 'shop/family_login.html')
+        login_error = 'Password incorrect!'
+    return render(request, 'shop/family_login.html', {'login_error': login_error})
 
 
 def management_login(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('management_dashboard')
+    login_error = None
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -63,9 +71,8 @@ def management_login(request):
         if user is not None and user.is_staff:
             login(request, user)
             return redirect('management_dashboard')
-        else:
-            messages.error(request, 'এডমিন একাউন্ট নয় বা লগইন তথ্য ভুল।')
-    return render(request, 'shop/management_login.html')
+        login_error = 'Password incorrect!'
+    return render(request, 'shop/management_login.html', {'login_error': login_error})
 
 
 def user_logout(request):
@@ -88,12 +95,31 @@ def _unread_message_count(user):
 def family_dashboard(request):
     if request.user.is_staff:
         return redirect('landing_page')
-    lists = MarketList.objects.filter(family=request.user).order_by('-created_at')
+    # Auto-approve pending lists 10 seconds after user sends
+    cutoff = timezone.now() - timedelta(seconds=10)
+    MarketList.objects.filter(status='pending', created_at__lte=cutoff).update(
+        status='approved', approved_at=timezone.now()
+    )
+    # প্রধান হিস্টোরি: পেন্ডিং + অ্যাপ্রুভড
+    lists = MarketList.objects.filter(family=request.user, status__in=['pending', 'approved']).order_by('-created_at')
+    # ডেলিভার্ড ফোল্ডার: তারিখ ও সময় অনুযায়ী
+    delivered_lists = MarketList.objects.filter(family=request.user, status='delivered').order_by('-delivered_at', '-created_at')
+    # ডিক্লাইন্ড ফোল্ডার: তারিখ ও সময় অনুযায়ী
+    declined_lists = MarketList.objects.filter(family=request.user, status='declined').order_by('-declined_at', '-created_at')
     form = MarketListForm()
     notice = Notice.get_latest()
     unread_count = _unread_message_count(request.user)
+    try:
+        prof = request.user.family_profile
+        display_name = prof.display_name or request.user.username
+        profile_avatar = prof.avatar if prof.avatar else None
+    except FamilyProfile.DoesNotExist:
+        display_name = request.user.username
+        profile_avatar = None
     return render(request, 'shop/family_dashboard.html', {
-        'lists': lists, 'form': form, 'notice': notice, 'unread_message_count': unread_count,
+        'lists': lists, 'delivered_lists': delivered_lists, 'declined_lists': declined_lists,
+        'form': form, 'notice': notice, 'unread_message_count': unread_count,
+        'display_name': display_name, 'profile_avatar': profile_avatar,
     })
 
 
@@ -106,10 +132,31 @@ def send_market_list(request):
         form = MarketListForm(request.POST)
         if form.is_valid():
             market_list = form.save(commit=False)
+            content = (market_list.content or '').strip()
+            lines = [s.strip() for s in content.splitlines() if s.strip()]
+            market_list.content = '\n'.join(lines)
             market_list.family = request.user
             market_list.save()
-            messages.success(request, 'লিস্ট সফলভাবে পাঠানো হয়েছে!')
-            return redirect('family_dashboard')
+            # লিস্ট সাবমিট হলেই অটো AI দিয়ে জেনারেট
+            if market_list.content:
+                market_list.ai_content = _ai_organize_list(market_list.content)
+                market_list.save(update_fields=['ai_content'])
+            return redirect(reverse('family_dashboard') + '?toast=sent')
+        # ফর্ম ভ্যালিড না হলে ড্যাশবোর্ডে ফিরিয়ে পাঠান ভুল সহ
+        lists = MarketList.objects.filter(family=request.user, status__in=['pending', 'approved']).order_by('-created_at')
+        delivered_lists = MarketList.objects.filter(family=request.user, status='delivered').order_by('-delivered_at', '-created_at')
+        declined_lists = MarketList.objects.filter(family=request.user, status='declined').order_by('-declined_at', '-created_at')
+        notice = Notice.get_latest()
+        unread_count = _unread_message_count(request.user)
+        try:
+            display_name = request.user.family_profile.display_name or request.user.username
+        except FamilyProfile.DoesNotExist:
+            display_name = request.user.username
+        return render(request, 'shop/family_dashboard.html', {
+            'lists': lists, 'delivered_lists': delivered_lists, 'declined_lists': declined_lists,
+            'form': form, 'notice': notice, 'unread_message_count': unread_count,
+            'display_name': display_name,
+        })
     return redirect('family_dashboard')
 
 
@@ -120,17 +167,76 @@ def update_market_list(request, pk):
         return redirect('landing_page')
     market_list = get_object_or_404(MarketList, pk=pk, family=request.user)
     if market_list.status != 'pending':
-        messages.error(request, 'শুধুমাত্র পেন্ডিং লিস্ট আপডেট করা যাবে।')
         return redirect('family_dashboard')
     if request.method == 'POST':
         form = MarketListForm(request.POST, instance=market_list)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'লিস্ট আপডেট হয়েছে।')
+            obj = form.save(commit=False)
+            content = (obj.content or '').strip()
+            lines = [s.strip() for s in content.splitlines() if s.strip()]
+            obj.content = '\n'.join(lines)
+            obj.save()
+            # আপডেট সাবমিট হলেই অটো AI দিয়ে জেনারেট
+            if obj.content:
+                obj.ai_content = _ai_organize_list(obj.content)
+                obj.save(update_fields=['ai_content'])
             return redirect('family_dashboard')
     else:
         form = MarketListForm(instance=market_list)
     return render(request, 'shop/update_market_list.html', {'form': form, 'market_list': market_list})
+
+
+@login_required
+def my_profile(request):
+    """User's own profile page with edit."""
+    if request.user.is_staff:
+        return redirect('landing_page')
+    try:
+        profile = request.user.family_profile
+    except FamilyProfile.DoesNotExist:
+        profile = FamilyProfile.objects.create(user=request.user, full_name='', phone='-', address='-')
+    profile_form = ProfileEditForm(instance=profile)
+    password_form = PasswordChangeForm(user=request.user)
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type', 'profile')
+        if form_type == 'profile':
+            profile_form = ProfileEditForm(request.POST, instance=profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                return redirect('my_profile')
+        elif form_type == 'avatar':
+            avatar_file = request.FILES.get('avatar')
+            if avatar_file:
+                try:
+                    from PIL import Image
+                    img = Image.open(avatar_file)
+                    img = img.convert('RGB')
+                    w, h = img.size
+                    size = 400
+                    if w > size or h > size:
+                        r = min(size / w, size / h)
+                        img = img.resize((int(w * r), int(h * r)), Image.Resampling.LANCZOS)
+                    from io import BytesIO
+                    from django.core.files.base import ContentFile
+                    out = BytesIO()
+                    img.save(out, format='JPEG', quality=85)
+                    profile.avatar.save('avatar_%s.jpg' % profile.user_id, ContentFile(out.getvalue()), save=True)
+                except Exception:
+                    pass
+            return redirect('my_profile')
+        elif form_type == 'password':
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                request.user.set_password(password_form.cleaned_data['new_password1'])
+                request.user.save()
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, request.user)
+                return redirect('my_profile')
+    return render(request, 'shop/my_profile.html', {
+        'profile': profile,
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
 
 
 @login_required
@@ -140,74 +246,495 @@ def delete_market_list(request, pk):
         return redirect('landing_page')
     market_list = get_object_or_404(MarketList, pk=pk, family=request.user)
     market_list.delete()
-    messages.success(request, 'লিস্ট মুছে ফেলা হয়েছে।')
-    return redirect('family_dashboard')
+    return redirect(reverse('family_dashboard') + '?toast=deleted')
 
 
 # === ADMIN VIEWS ===
 
 @staff_member_required(login_url='management_login')
 def management_dashboard(request):
+    # Auto-approve pending lists 10 seconds after user sends
+    cutoff = timezone.now() - timedelta(seconds=10)
+    MarketList.objects.filter(status='pending', created_at__lte=cutoff).update(
+        status='approved', approved_at=timezone.now()
+    )
     filter_status = request.GET.get('filter', 'total')
-    lists = MarketList.objects.all().select_related('family')
+    lists = MarketList.objects.all().select_related('family', 'family__family_profile')
     if filter_status == 'approved':
         lists = lists.filter(status='approved')
     elif filter_status == 'pending':
         lists = lists.filter(status='pending')
-    total_count = MarketList.objects.count()
+    elif filter_status == 'delivered':
+        lists = lists.filter(status='delivered')
+    elif filter_status == 'declined':
+        lists = lists.filter(status='declined')
+    elif filter_status == 'late_transferred':
+        lists = lists.filter(status='late_transferred')
+    else:
+        # Default "total" view: exclude delivered/declined/late_transferred so they move out once handled
+        lists = lists.exclude(status__in=['delivered', 'declined', 'late_transferred'])
+    # filter=total or default: show all orders (no status filter)
+    for lst in lists:
+        try:
+            lst.user_display_name = lst.family.family_profile.display_name or lst.family.username
+            lst.user_avatar_url = lst.family.family_profile.avatar.url if lst.family.family_profile.avatar else None
+        except FamilyProfile.DoesNotExist:
+            lst.user_display_name = lst.family.username
+            lst.user_avatar_url = None
+        except Exception:
+            lst.user_avatar_url = None
+    total_count = MarketList.objects.exclude(status__in=['delivered', 'declined', 'late_transferred']).count()
     approved_count = MarketList.objects.filter(status='approved').count()
     pending_count = MarketList.objects.filter(status='pending').count()
+    delivered_count = MarketList.objects.filter(status='delivered').count()
+    declined_count = MarketList.objects.filter(status='declined').count()
+    late_transferred_count = MarketList.objects.filter(status='late_transferred').count()
+    # Delivery path setup pending: profiles with at least one path field empty (exclude deleted)
+    delivery_path_pending_count = FamilyProfile.objects.filter(is_deleted=False).filter(
+        Q(area_name='') | Q(section_no='') | Q(building_name='') |
+        Q(floor_no='') | Q(room_no='')
+    ).count()
+    trash_count = FamilyProfile.objects.filter(is_deleted=True).count()
     notice = Notice.get_latest()
     notice_form = NoticeForm(instance=notice)
     if request.method == 'POST' and request.POST.get('form_type') == 'notice':
         notice_form = NoticeForm(request.POST, instance=notice)
         if notice_form.is_valid():
             notice_form.save()
-            messages.success(request, 'নোটিস আপডেট হয়েছে।')
             return redirect('management_dashboard')
+    lists_qs = list(lists)
+    merged_items = _get_merged_items_from_lists(lists_qs)
+    users_data = {}
+    for lst in lists_qs:
+        try:
+            display_name = lst.family.family_profile.display_name or lst.family.username
+        except FamilyProfile.DoesNotExist:
+            display_name = lst.family.username
+        uid = lst.family_id
+        if uid not in users_data:
+            users_data[uid] = {'display_name': display_name, 'lists': []}
+        users_data[uid]['lists'].append({
+            'pk': lst.pk,
+            'list_id': lst.list_id or f'Pack-{lst.pk}',
+            'created_at': lst.created_at,
+            'status': lst.get_status_display(),
+            'status_note': (lst.note or '').strip(),
+            'content': lst.content or '',
+            'ai_content': lst.ai_content or '',
+        })
+    total_notes_qs = MarketList.objects.exclude(status__in=['delivered', 'declined', 'late_transferred']).values_list('note', flat=True)
+    note_values = []
+    for note in total_notes_qs:
+        note_clean = (note or '').strip()
+        if note_clean and note_clean not in note_values:
+            note_values.append(note_clean)
+            if len(note_values) > 1:
+                break
+    status_override = note_values[0] if len(note_values) == 1 else ''
+    # Delivery flow configuration (for Delivery Flow Set)
+    delivery_flows_qs = DeliveryFlow.objects.all().order_by('sort_order', 'id')
+    delivery_flows = []
+    for idx, f in enumerate(delivery_flows_qs, 1):
+        delivery_flows.append({
+            'name': f.name or f"Flow {idx}",
+            'label': f.label,
+            'start': f.start_time.strftime('%H:%M'),
+            'end': f.end_time.strftime('%H:%M'),
+        })
+    users_list = [
+        {'user_id': uid, 'display_name': data['display_name'], 'count': len(data['lists']), 'lists': data['lists']}
+        for uid, data in users_data.items()
+    ]
+    users_list.sort(key=lambda x: (x['display_name'].upper(), x['user_id']))
     return render(request, 'shop/management_dashboard.html', {
-        'lists': lists,
+        'lists': lists_qs,
         'filter_status': filter_status,
         'total_count': total_count,
         'approved_count': approved_count,
         'pending_count': pending_count,
+        'delivered_count': delivered_count,
+        'declined_count': declined_count,
+        'late_transferred_count': late_transferred_count,
+        'delivery_path_pending_count': delivery_path_pending_count,
+        'trash_count': trash_count,
         'notice': notice,
         'notice_form': notice_form,
+        'merged_items': merged_items,
+        'users_list': users_list,
+        'status_override': status_override,
+        'delivery_flows': delivery_flows,
     })
 
 
 @staff_member_required(login_url='management_login')
-def date_wise_summary(request):
-    """Date-wise consolidated view of all market lists."""
-    selected_date = request.GET.get('date')
-    if selected_date:
+@require_POST
+def save_delivery_flow(request):
+    """Persist delivery flow config for Delivery Flow Set (Total Order Received)."""
+    import json
+    flows_raw = request.POST.get('flows') or '[]'
+    try:
+        flows = json.loads(flows_raw)
+        if not isinstance(flows, list):
+            raise ValueError
+    except Exception:
+        return JsonResponse({'success': False, 'error': 'Invalid payload'}, status=400)
+
+    # Clear existing flows and recreate from payload
+    DeliveryFlow.objects.all().delete()
+    from datetime import datetime as _dt
+    created = 0
+    for idx, flow in enumerate(flows):
+        label = (flow.get('label') or '').strip()
+        start = (flow.get('start') or '').strip()
+        end = (flow.get('end') or '').strip()
+        if not (label and start and end):
+            continue
         try:
-            dt = datetime.strptime(selected_date, '%Y-%m-%d').date()
-            lists = MarketList.objects.filter(
-                created_at__date=dt
-            ).select_related('family').order_by('family__username')
+            start_time = _dt.strptime(start, '%H:%M').time()
+            end_time = _dt.strptime(end, '%H:%M').time()
         except ValueError:
-            dt = date.today()
-            lists = MarketList.objects.filter(created_at__date=dt).select_related('family')
+            continue
+        DeliveryFlow.objects.create(
+            name=(flow.get('name') or '').strip() or f"Flow {idx+1}",
+            label=label,
+            start_time=start_time,
+            end_time=end_time,
+            sort_order=idx,
+        )
+        created += 1
+    return JsonResponse({'success': True, 'count': created})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def write_list_status(request):
+    status_text = (request.POST.get('status_text') or '').strip()
+    qs = MarketList.objects.exclude(status__in=['delivered', 'declined', 'late_transferred'])
+    if status_text:
+        qs.update(note=status_text)
     else:
-        dt = date.today()
-        lists = MarketList.objects.filter(created_at__date=dt).select_related('family')
-    for lst in lists:
-        try:
-            lst.user_display_name = lst.family.family_profile.display_name or lst.family.username
-        except FamilyProfile.DoesNotExist:
-            lst.user_display_name = lst.family.username
-    return render(request, 'shop/date_wise_summary.html', {
-        'lists': lists,
-        'selected_date': dt,
-    })
+        qs.update(note='')
+    return JsonResponse({'success': True, 'status_text': status_text})
 
 
 @staff_member_required(login_url='management_login')
 def user_directory(request):
-    """All registered family profiles."""
-    profiles = FamilyProfile.objects.select_related('user').order_by('user__username')
-    return render(request, 'shop/user_directory.html', {'profiles': profiles})
+    """User Profile & Delivery Path manager - vertical list of user blocks."""
+    all_profiles = FamilyProfile.objects.filter(is_deleted=False).select_related('user').order_by('user__username')
+    # Completed: all 5 delivery path fields filled
+    completed = all_profiles.exclude(
+        Q(area_name='') | Q(section_no='') | Q(building_name='') |
+        Q(floor_no='') | Q(room_no='')
+    )
+    # Pending: at least one field empty
+    pending = all_profiles.filter(
+        Q(area_name='') | Q(section_no='') | Q(building_name='') |
+        Q(floor_no='') | Q(room_no='')
+    )
+    completed_ids = set(completed.values_list('user_id', flat=True))
+    # Area -> Section -> Building -> Profiles (with approved lists only) for Delivery Funnel
+    def _format_section(s):
+        s = (s or '').strip()
+        if not s:
+            return ''
+        u = s.upper()
+        return u if u.startswith('SECTION') else f"SECTION-{u}"
+
+    # Delivery Funnel: only APPROVED lists (5s auto approval) - delivered/declined excluded
+    lists_by_user = {}
+    for ml in MarketList.objects.filter(status='approved').select_related('family'):
+        uid = ml.family_id
+        if uid not in lists_by_user:
+            lists_by_user[uid] = []
+        ai_content = (ml.ai_content or '').strip()
+        orig_content = (ml.content or '').strip()
+        ai_items = [ln.strip() for ln in ai_content.splitlines() if ln.strip()] if ai_content else []
+        orig_items = [ln.strip() for ln in orig_content.splitlines() if ln.strip()] if orig_content else []
+        lists_by_user[uid].append({
+            'pk': ml.pk,
+            'list_id': ml.list_id or f'Pack-{ml.pk}',
+            'created_at': ml.created_at,
+            'status': 'approved',
+            'ai_items': ai_items,
+            'orig_items': orig_items,
+            'deliver_url': reverse('deliver_list', args=[ml.pk]),
+            'decline_url': reverse('decline_list', args=[ml.pk]),
+        })
+
+    area_data = {}
+    for profile in completed.select_related('user'):
+        area = (profile.area_name or '').strip()
+        section = (profile.section_no or '').strip()
+        building = (profile.building_name or '').strip()
+        if not area or not section or not building:
+            continue
+        uid = profile.user_id
+        sec_fmt = _format_section(section)
+        bld = building.strip()
+        key = (area, sec_fmt, bld)
+        if key not in area_data:
+            area_data[key] = {}
+        if uid not in area_data[key]:
+            area_data[key][uid] = (
+                profile.display_name,
+                profile.phone or '',
+                (profile.floor_no or '').strip(),
+                (profile.room_no or '').strip(),
+                lists_by_user.get(uid, []),
+            )
+
+    def pathway_has_images(a, s, b):
+        return PathwayImage.objects.filter(
+            pathway__area_name=a, pathway__section_no=s or '', pathway__building_name=b or ''
+        ).exists()
+
+    area_sections_buildings_profiles_list = []
+    for area in sorted({k[0] for k in area_data.keys()}):
+        secs = []
+        area_count = 0
+        for sec in sorted({k[1] for k in area_data.keys() if k[0] == area}):
+            blds = []
+            sec_count = 0
+            for bld in sorted({k[2] for k in area_data.keys() if k[0] == area and k[1] == sec}):
+                key = (area, sec, bld)
+                raw_profiles = area_data[key]
+                profiles_data = []
+                for uid, (name, phone, floor, room, lists) in raw_profiles.items():
+                    if not lists:
+                        continue
+                    profiles_data.append((uid, name, phone, floor, room, lists))
+                if not profiles_data:
+                    continue
+                profiles_data.sort(key=lambda x: (x[1].upper(), x[0]))
+                bld_count = sum(len(lists) for _, _, _, _, _, lists in profiles_data)
+                if bld_count == 0:
+                    continue
+                sec_count += bld_count
+                blds.append((bld, bld_count, profiles_data, pathway_has_images(area, sec, bld)))
+            if sec_count == 0 or not blds:
+                continue
+            area_count += sec_count
+            secs.append((sec, sec_count, blds, pathway_has_images(area, sec, '')))
+        if area_count == 0 or not secs:
+            continue
+        area_sections_buildings_profiles_list.append((area, area_count, secs, pathway_has_images(area, '', '')))
+
+    return render(request, 'shop/user_directory.html', {
+        'profiles': all_profiles,
+        'completed_count': completed.count(),
+        'pending_count': pending.count(),
+        'completed_ids': completed_ids,
+        'area_sections_buildings_profiles_list': area_sections_buildings_profiles_list,
+    })
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def save_delivery_path(request, user_id):
+    """Save delivery path for a user. Returns JSON."""
+    user = get_object_or_404(User, pk=user_id)
+    try:
+        profile = user.family_profile
+    except FamilyProfile.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Profile not found'}, status=404)
+    area = (request.POST.get('area_name') or '').strip()
+    section = (request.POST.get('section_no') or '').strip()
+    building = (request.POST.get('building_name') or '').strip()
+    floor = (request.POST.get('floor_no') or '').strip()
+    room = (request.POST.get('room_no') or '').strip()
+    empty = []
+    if not area:
+        empty.append('area_name')
+    if not section:
+        empty.append('section_no')
+    if not building:
+        empty.append('building_name')
+    if not floor:
+        empty.append('floor_no')
+    if not room:
+        empty.append('room_no')
+    if empty:
+        return JsonResponse({'success': False, 'empty_fields': empty})
+    profile.area_name = area
+    profile.section_no = section
+    profile.building_name = building
+    profile.floor_no = floor
+    profile.room_no = room
+    profile.save()
+    return JsonResponse({'success': True, 'delivery_path': profile.delivery_path_display})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def update_address(request, user_id):
+    """Update address for a user. Returns JSON."""
+    user = get_object_or_404(User, pk=user_id)
+    try:
+        profile = user.family_profile
+    except FamilyProfile.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Profile not found'}, status=404)
+    addr = (request.POST.get('address') or '').strip()
+    if not addr:
+        return JsonResponse({'success': False, 'error': 'Address required'})
+    profile.address = addr
+    profile.save()
+    return JsonResponse({'success': True, 'address': profile.address})
+
+
+@staff_member_required(login_url='management_login')
+@require_GET
+def pathway_images(request):
+    """Get pathway images for area/section/building. Returns JSON."""
+    area = (request.GET.get('area') or '').strip()
+    section = (request.GET.get('section') or '').strip()
+    building = (request.GET.get('building') or '').strip()
+    if not area:
+        return JsonResponse({'success': False, 'error': 'Area required'}, status=400)
+    pathway, _ = Pathway.objects.get_or_create(
+        area_name=area,
+        section_no=section,
+        building_name=building,
+        defaults={'area_name': area, 'section_no': section, 'building_name': building}
+    )
+    images = list(pathway.images.order_by('position').values('id', 'position', 'note'))
+    for img in images:
+        pi = PathwayImage.objects.get(pk=img['id'])
+        img['url'] = pi.image.url if pi.image else ''
+    return JsonResponse({'success': True, 'images': images, 'pathway_id': pathway.pk})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def pathway_upload(request):
+    """Upload new image to pathway. POST: area, section, building, image (file)."""
+    area = (request.POST.get('area') or '').strip()
+    section = (request.POST.get('section') or '').strip()
+    building = (request.POST.get('building') or '').strip()
+    if not area:
+        return JsonResponse({'success': False, 'error': 'Area required'}, status=400)
+    pathway, _ = Pathway.objects.get_or_create(
+        area_name=area,
+        section_no=section,
+        building_name=building,
+        defaults={'area_name': area, 'section_no': section, 'building_name': building}
+    )
+    img_file = request.FILES.get('image')
+    if not img_file:
+        return JsonResponse({'success': False, 'error': 'Image file required'}, status=400)
+    max_pos = pathway.images.aggregate(m=Max('position'))['m']
+    position = (max_pos or -1) + 1
+    pi = PathwayImage.objects.create(pathway=pathway, image=img_file, position=position)
+    return JsonResponse({
+        'success': True,
+        'id': pi.id,
+        'position': position,
+        'url': pi.image.url,
+    })
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def pathway_update_note(request, image_id):
+    """Update note for a pathway image."""
+    pi = get_object_or_404(PathwayImage, pk=image_id)
+    note = (request.POST.get('note') or '').strip()
+    pi.note = note
+    pi.save()
+    return JsonResponse({'success': True})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def pathway_delete(request, image_id):
+    """Delete a pathway image."""
+    pi = get_object_or_404(PathwayImage, pk=image_id)
+    pi.delete()
+    return JsonResponse({'success': True})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def pathway_replace(request, image_id):
+    """Replace existing pathway image. POST: image (file)."""
+    pi = get_object_or_404(PathwayImage, pk=image_id)
+    img_file = request.FILES.get('image')
+    if not img_file:
+        return JsonResponse({'success': False, 'error': 'Image file required'}, status=400)
+    pi.image = img_file
+    pi.save()
+    return JsonResponse({'success': True, 'url': pi.image.url})
+
+
+@staff_member_required(login_url='management_login')
+def user_profiles(request):
+    """User Profiles list - username, full name, address, phone. Option to delete (soft delete to trash)."""
+    profiles = FamilyProfile.objects.filter(is_deleted=False).select_related('user').order_by('user__username')
+    trash_profiles = FamilyProfile.objects.filter(is_deleted=True).select_related('user').order_by('-deleted_at')
+    trash_count = trash_profiles.count()
+    return render(request, 'shop/user_profiles.html', {
+        'profiles': profiles, 'trash_profiles': trash_profiles, 'trash_count': trash_count,
+    })
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def soft_delete_profile(request, user_id):
+    """Soft delete: move profile to trash (is_deleted=True, user.is_active=False)."""
+    user = get_object_or_404(User, pk=user_id)
+    try:
+        profile = user.family_profile
+    except FamilyProfile.DoesNotExist:
+        return redirect('user_profiles')
+    if profile.is_deleted:
+        return redirect('user_profiles')
+    profile.is_deleted = True
+    profile.deleted_at = timezone.now()
+    profile.save()
+    user.is_active = False
+    user.save()
+    return redirect('user_profiles')
+
+
+@staff_member_required(login_url='management_login')
+def trash_folder(request):
+    """Trash folder - list of soft-deleted profiles. Options: Restore or Permanent Delete."""
+    profiles = FamilyProfile.objects.filter(is_deleted=True).select_related('user').order_by('-deleted_at')
+    return render(request, 'shop/trash_folder.html', {'profiles': profiles})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def restore_profile(request, user_id):
+    """Restore profile from trash."""
+    user = get_object_or_404(User, pk=user_id)
+    try:
+        profile = user.family_profile
+    except FamilyProfile.DoesNotExist:
+        return redirect('user_profiles')
+    if not profile.is_deleted:
+        return redirect('user_profiles')
+    profile.is_deleted = False
+    profile.deleted_at = None
+    profile.save()
+    user.is_active = True
+    user.save()
+    return redirect('user_profiles')
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
+def permanent_delete_profile(request, user_id):
+    """Permanently delete user and profile from trash."""
+    user = get_object_or_404(User, pk=user_id)
+    try:
+        profile = user.family_profile
+    except FamilyProfile.DoesNotExist:
+        return redirect('user_profiles')
+    if not profile.is_deleted:
+        return redirect('user_profiles')
+    username = user.username
+    user.delete()  # Cascades to FamilyProfile
+    return redirect('user_profiles')
 
 
 @staff_member_required(login_url='management_login')
@@ -234,7 +761,59 @@ def approve_list(request, pk):
         market_list.status = 'approved'
         market_list.approved_at = timezone.now()
         market_list.save()
-        messages.success(request, 'লিস্ট অনুমোদিত হয়েছে।')
+    ref = request.META.get('HTTP_REFERER')
+    return redirect(ref if ref else 'management_dashboard')
+
+
+@staff_member_required(login_url='management_login')
+def revert_to_pending(request, pk):
+    market_list = get_object_or_404(MarketList, pk=pk)
+    if market_list.status == 'approved':
+        market_list.status = 'pending'
+        market_list.approved_at = None
+        market_list.save()
+    ref = request.META.get('HTTP_REFERER')
+    return redirect(ref if ref else 'management_dashboard')
+
+
+@staff_member_required(login_url='management_login')
+def decline_list(request, pk):
+    market_list = get_object_or_404(MarketList, pk=pk)
+    if market_list.status in ('pending', 'approved'):
+        market_list.status = 'declined'
+        market_list.declined_at = timezone.now()
+        market_list.save()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'status': 'declined'})
+    ref = request.META.get('HTTP_REFERER')
+    return redirect(ref if ref else 'management_dashboard')
+
+
+@staff_member_required(login_url='management_login')
+def deliver_list(request, pk):
+    market_list = get_object_or_404(MarketList, pk=pk)
+    if market_list.status == 'approved':
+        market_list.status = 'delivered'
+        market_list.delivered_at = timezone.now()
+        market_list.save()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'status': 'delivered'})
+    ref = request.META.get('HTTP_REFERER')
+    return redirect(ref if ref else 'management_dashboard')
+
+
+@staff_member_required(login_url='management_login')
+def restore_list(request, pk):
+    """Bring delivered/declined/late_transferred list back to Total Order Received (approved)."""
+    market_list = get_object_or_404(MarketList, pk=pk)
+    if market_list.status in ('delivered', 'declined', 'late_transferred'):
+        market_list.status = 'approved'
+        market_list.approved_at = timezone.now()
+        market_list.delivered_at = None
+        market_list.declined_at = None
+        market_list.save()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'status': 'approved'})
     ref = request.META.get('HTTP_REFERER')
     return redirect(ref if ref else 'management_dashboard')
 
@@ -243,26 +822,52 @@ def approve_list(request, pk):
 def admin_delete_list(request, pk):
     market_list = get_object_or_404(MarketList, pk=pk)
     market_list.delete()
-    messages.success(request, 'লিস্ট মুছে ফেলা হয়েছে।')
     ref = request.META.get('HTTP_REFERER')
     return redirect(ref if ref else 'management_dashboard')
 
 
-# --- PDF & Consolidated ---
-
-def _get_lists_for_date(dt):
-    return MarketList.objects.filter(created_at__date=dt).select_related('family').order_by('family__username')
+def _ai_organize_list(content):
+    """AI-style organization: clean lines, remove dupes, number with Bengali numerals."""
+    if not content or not content.strip():
+        return content or ""
+    bengali_digits = '০১২৩৪৫৬৭৮৯'
+    lines = [ln.strip() for ln in content.splitlines() if ln.strip()]
+    seen = set()
+    unique = []
+    for ln in lines:
+        key = ln.lower().strip()
+        if key and key not in seen:
+            seen.add(key)
+            unique.append(ln)
+    result = []
+    for i, ln in enumerate(unique, 1):
+        num = ''.join(bengali_digits[int(d)] for d in str(i))
+        result.append(f"{num}. {ln}")
+    return '\n'.join(result)
 
 
 @staff_member_required(login_url='management_login')
-def date_wise_summary_pdf(request):
-    """Download date-wise summary as PDF: all lists with serial and user address."""
-    selected_date = request.GET.get('date') or date.today().isoformat()
-    try:
-        dt = datetime.strptime(selected_date, '%Y-%m-%d').date()
-    except ValueError:
-        dt = date.today()
-    lists = _get_lists_for_date(dt)
+def list_entry_all_pdf(request):
+    """Download all lists from list entry as a single PDF. Uses fpdf2 for proper Bengali font."""
+    filter_status = request.GET.get('filter', 'total')
+    lists = MarketList.objects.all().select_related('family')
+    if filter_status == 'approved':
+        lists = lists.filter(status='approved')
+    elif filter_status == 'pending':
+        lists = lists.filter(status='pending')
+    for lst in lists:
+        try:
+            lst.user_display_name = lst.family.family_profile.display_name or lst.family.username
+        except FamilyProfile.DoesNotExist:
+            lst.user_display_name = lst.family.username
+
+    from .pdf_utils import generate_list_entry_pdf_fpdf2
+    pdf_bytes = generate_list_entry_pdf_fpdf2(list(lists))
+    if pdf_bytes:
+        response = HttpResponse(bytes(pdf_bytes), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="list-entry-all.pdf"'
+        return response
+
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.units import cm
@@ -270,71 +875,133 @@ def date_wise_summary_pdf(request):
         from .pdf_utils import get_pdf_styles, safe_paragraph, safe_paragraph_bold
         from io import BytesIO
     except ImportError:
-        return HttpResponse('PDF জেনারেট করতে reportlab ইনস্টল করুন: pip install reportlab', status=501)
+        return HttpResponse('PDF জেনারেট করতে reportlab ইনস্টল করুন', status=501)
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     st = get_pdf_styles()
     story = []
-    story.append(safe_paragraph(st['title'], 'তারিখ অনুযায়ী বাজার তালিকা - ' + dt.strftime('%d/%m/%Y')))
+    story.append(safe_paragraph(st['title'], 'লিস্ট এন্ট্রি - সব লিস্ট (পিডিএফ)'))
     story.append(Spacer(1, 16))
     for idx, lst in enumerate(lists, 1):
-        try:
-            profile = lst.family.family_profile
-            addr = profile.address or '-'
-            name = profile.display_name or lst.family.username
-        except FamilyProfile.DoesNotExist:
-            addr = '-'
-            name = lst.family.username
-        story.append(safe_paragraph_bold(st['heading'], f'সিরিয়াল: {idx} | লিস্ট আইডি: #{lst.list_id} | ব্যবহারকারী: {name}'))
-        story.append(safe_paragraph(st['body'], f'ঠিকানা: {addr}'))
-        story.append(safe_paragraph(st['body'], f'লিস্ট: {lst.content or "-"}'))
+        name = getattr(lst, 'user_display_name', lst.family.username)
+        story.append(safe_paragraph_bold(st['heading'], f'সিরিয়াল: {idx} | লিস্ট: {lst.list_id} | ব্যবহারকারী: {name}'))
+        story.append(safe_paragraph(st['body'], f'তারিখ: {lst.created_at.strftime("%d/%m/%Y %H:%M") if lst.created_at else "-"}'))
+        story.append(safe_paragraph_bold(st['body'], 'মূল লিস্ট:'))
+        story.append(safe_paragraph(st['body'], lst.content or '—'))
+        if lst.ai_content:
+            story.append(safe_paragraph_bold(st['body'], 'AI লিস্ট:'))
+            story.append(safe_paragraph(st['body'], lst.ai_content))
         story.append(Spacer(1, 14))
     doc.build(story)
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="date-summary-{dt.isoformat()}.pdf"'
+    response['Content-Disposition'] = 'attachment; filename="list-entry-all.pdf"'
     return response
 
 
-@staff_member_required(login_url='management_login')
-def date_wise_consolidated(request):
-    """Same date: one page with all items merged (no user names). Option to download PDF."""
-    selected_date = request.GET.get('date') or date.today().isoformat()
-    try:
-        dt = datetime.strptime(selected_date, '%Y-%m-%d').date()
-    except ValueError:
-        dt = date.today()
-    lists = _get_lists_for_date(dt)
-    # Merge all content lines into one list of "points" (items)
+def _strip_number_prefix(line):
+    """Remove leading '১. ' or '1. ' style prefix from line."""
+    import re
+    return re.sub(r'^[\d০-৯]+[.\s]+', '', line).strip()
+
+
+def _number_with_bengali(lines):
+    """Number lines with Bengali numerals. Keeps duplicates (same point can appear multiple times)."""
+    if not lines:
+        return []
+    bengali_digits = '০১২৩৪৫৬৭৮৯'
+    result = []
+    for i, ln in enumerate(lines, 1):
+        num = ''.join(bengali_digits[int(d)] for d in str(i))
+        result.append(f"{num}. {ln}")
+    return result
+
+
+def _get_merged_items_from_lists(lists):
+    """Merge all AI list lines from lists. Same points listed multiple times (no dedupe)."""
     all_lines = []
     for lst in lists:
-        if lst.content:
-            for line in lst.content.strip().splitlines():
-                line = line.strip()
+        src = lst.ai_content or ''
+        if src:
+            for line in src.strip().splitlines():
+                line = _strip_number_prefix(line.strip())
                 if line:
                     all_lines.append(line)
-    return render(request, 'shop/date_wise_consolidated.html', {
-        'selected_date': dt,
-        'lists': lists,
-        'merged_items': all_lines,
+    return _number_with_bengali(all_lines) if all_lines else []
+
+
+@staff_member_required(login_url='management_login')
+def list_entry_user_view(request):
+    """User View: bazar lists grouped by user name, with order count badge. Click user to see lists."""
+    filter_status = request.GET.get('filter', 'total')
+    lists = MarketList.objects.all().select_related('family')
+    if filter_status == 'approved':
+        lists = lists.filter(status='approved')
+    elif filter_status == 'pending':
+        lists = lists.filter(status='pending')
+    # filter=total or default: show all orders
+    users_data = {}
+    for lst in lists:
+        try:
+            display_name = lst.family.family_profile.display_name or lst.family.username
+        except FamilyProfile.DoesNotExist:
+            display_name = lst.family.username
+        uid = lst.family_id
+        if uid not in users_data:
+            users_data[uid] = {'display_name': display_name, 'lists': []}
+        users_data[uid]['lists'].append({
+            'pk': lst.pk,
+            'list_id': lst.list_id or f'Pack-{lst.pk}',
+            'created_at': lst.created_at,
+            'status': lst.get_status_display(),
+            'content': lst.content or '',
+            'ai_content': lst.ai_content or '',
+        })
+    users_list = [
+        {'user_id': uid, 'display_name': data['display_name'], 'count': len(data['lists']), 'lists': data['lists']}
+        for uid, data in users_data.items()
+    ]
+    users_list.sort(key=lambda x: (x['display_name'].upper(), x['user_id']))
+    return render(request, 'shop/list_entry_user_view.html', {
+        'users_list': users_list,
+        'filter_status': filter_status,
     })
 
 
 @staff_member_required(login_url='management_login')
-def date_wise_consolidated_pdf(request):
-    """Download consolidated (merged) items for the date as PDF."""
-    selected_date = request.GET.get('date') or date.today().isoformat()
-    try:
-        dt = datetime.strptime(selected_date, '%Y-%m-%d').date()
-    except ValueError:
-        dt = date.today()
-    lists = _get_lists_for_date(dt)
-    all_lines = []
-    for lst in lists:
-        if lst.content:
-            for line in lst.content.strip().splitlines():
-                if line.strip():
-                    all_lines.append(line.strip())
+def list_entry_consolidated(request):
+    """Consolidated list: all market list points merged, one list with Bengali numbering."""
+    filter_status = request.GET.get('filter', 'total')
+    lists = MarketList.objects.all().select_related('family')
+    if filter_status == 'approved':
+        lists = lists.filter(status='approved')
+    elif filter_status == 'pending':
+        lists = lists.filter(status='pending')
+    merged_lines = _get_merged_items_from_lists(list(lists))
+    return render(request, 'shop/list_entry_consolidated.html', {
+        'merged_items': merged_lines,
+        'filter_status': filter_status,
+    })
+
+
+@staff_member_required(login_url='management_login')
+def list_entry_consolidated_pdf(request):
+    """Download consolidated list as PDF."""
+    filter_status = request.GET.get('filter', 'total')
+    lists = MarketList.objects.all().select_related('family')
+    if filter_status == 'approved':
+        lists = lists.filter(status='approved')
+    elif filter_status == 'pending':
+        lists = lists.filter(status='pending')
+    merged_lines = _get_merged_items_from_lists(list(lists))
+    from .pdf_utils import generate_consolidated_pdf_fpdf2
+    from datetime import date
+    dt = date.today()
+    pdf_bytes = generate_consolidated_pdf_fpdf2(merged_lines, dt, title='Consolidated List', pre_numbered=True)
+    if pdf_bytes:
+        response = HttpResponse(bytes(pdf_bytes), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="consolidated-list.pdf"'
+        return response
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.lib.units import cm
@@ -346,25 +1013,35 @@ def date_wise_consolidated_pdf(request):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=2*cm, leftMargin=2*cm, topMargin=2*cm, bottomMargin=2*cm)
     st = get_pdf_styles()
-    story = [safe_paragraph(st['title'], 'সম্মিলিত বাজার পয়েন্ট - ' + dt.strftime('%d/%m/%Y')), Spacer(1, 16)]
-    for i, line in enumerate(all_lines, 1):
-        story.append(safe_paragraph(st['body'], f'{i}. {line}'))
-        story.append(Spacer(1, 6))
+    story = [safe_paragraph(st['title'], 'সম্মিলিত লিস্ট'), Spacer(1, 16)]
+    for line in merged_lines:
+        story.append(safe_paragraph(st['body'], line))
+        story.append(Spacer(1, 4))
     doc.build(story)
     buffer.seek(0)
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="consolidated-{dt.isoformat()}.pdf"'
+    response['Content-Disposition'] = 'attachment; filename="consolidated-list.pdf"'
     return response
+
+
+@staff_member_required(login_url='management_login')
+@require_GET
+def ai_generate_list(request, pk):
+    market_list = get_object_or_404(MarketList, pk=pk)
+    generated = _ai_organize_list(market_list.content)
+    market_list.ai_content = generated
+    market_list.save(update_fields=['ai_content'])
+    return JsonResponse({'success': True, 'content': generated})
 
 
 # --- List comment thread (management + user) ---
 
 @login_required
+@xframe_options_sameorigin
 def list_comment_thread(request, pk):
     """View and add comments on a market list. Allowed: list owner or staff."""
     market_list = get_object_or_404(MarketList, pk=pk)
     if not request.user.is_staff and market_list.family_id != request.user.id:
-        messages.error(request, 'এই লিস্টে মন্তব্য করার অনুমতি নেই।')
         return redirect('family_dashboard')
     comments = market_list.comments.select_related('author').order_by('created_at')
     form = MarketListCommentForm()
@@ -372,12 +1049,15 @@ def list_comment_thread(request, pk):
         form = MarketListCommentForm(request.POST)
         if form.is_valid():
             MarketListComment.objects.create(market_list=market_list, author=request.user, body=form.cleaned_data['body'])
-            messages.success(request, 'মন্তব্য যোগ হয়েছে।')
-            return redirect('list_comment_thread', pk=pk)
-    from django.urls import reverse
-    back_url = request.GET.get('back') or request.META.get('HTTP_REFERER') or (reverse('date_wise_summary') if request.user.is_staff else reverse('family_dashboard'))
+            embed = request.GET.get('embed') == '1'
+            url = reverse('list_comment_thread', kwargs={'pk': pk})
+            if embed:
+                url += '?embed=1'
+            return redirect(url)
+    back_url = request.GET.get('back') or request.META.get('HTTP_REFERER') or (reverse('management_dashboard') if request.user.is_staff else reverse('family_dashboard'))
+    embed = request.GET.get('embed') == '1'
     return render(request, 'shop/list_comment_thread.html', {
-        'market_list': market_list, 'comments': comments, 'form': form, 'back_url': back_url,
+        'market_list': market_list, 'comments': comments, 'form': form, 'back_url': back_url, 'embed': embed,
     })
 
 
@@ -409,7 +1089,6 @@ def messaging_thread(request, user_id):
     """Open conversation with user_id. Staff can open any; user only own."""
     target_user = get_object_or_404(User, pk=user_id)
     if not request.user.is_staff and request.user.id != int(user_id):
-        messages.error(request, 'অনুমতি নেই।')
         return redirect('family_dashboard')
     conv = _get_or_create_conversation(target_user)
     # Mark messages received by current user as read
@@ -436,11 +1115,6 @@ def message_unread_count(request):
     """API: return unread count for current user (for badge)."""
     count = _unread_message_count(request.user)
     return JsonResponse({'unread': count})
-
-
-#delivery section
-def delivery(request):
-    return render(request, "shop/delivery.html")
 
 
 # --- Notice (already in dashboard; update via management_dashboard form)

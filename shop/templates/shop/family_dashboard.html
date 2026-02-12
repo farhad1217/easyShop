@@ -1,21 +1,22 @@
 {% extends 'shop/base.html' %}
+{% load shop_extras %}
 {% block title %}বাজার লিস্ট - EasyShop{% endblock %}
 {% block content %}
 <div class="container family-dashboard">
     <div class="family-header">
         <div class="account-info">
-            <div class="avatar">👤</div>
+            <a href="{% url 'my_profile' %}" class="avatar avatar-link">
+                {% if profile_avatar %}<img src="{{ profile_avatar.url }}" alt="">{% else %}👤{% endif %}
+            </a>
             <div>
                 <span class="label">আমার অ্যাকাউন্ট</span>
-                <span class="username">{{ user.username|upper }}</span>
+                <a href="{% url 'my_profile' %}" class="username-link">{{ display_name }}</a>
             </div>
         </div>
         <div class="header-icons">
-            <a href="{% url 'messaging_inbox' %}" class="icon-btn msg-icon-wrap" title="বার্তা">
-                💬
-                {% if unread_message_count %}<span class="msg-badge">{{ unread_message_count }}</span>{% endif %}
+            <a href="{% url 'user_logout' %}" class="icon-btn logout-icon-btn" title="লগআউট">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </a>
-            <a href="{% url 'user_logout' %}" class="icon-btn" title="লগআউট">🚪</a>
         </div>
     </div>
 
@@ -28,11 +29,13 @@
     <div class="market-list-section card">
         <h2 class="section-title">বাজার লিস্ট</h2>
         <p class="section-subtitle">আজ আপনার কী কী দরকার?</p>
-        <form method="post" action="{% url 'send_market_list' %}" class="list-form">
+        <form method="post" action="{% url 'send_market_list' %}" class="list-form" id="bazarListForm">
             {% csrf_token %}
+            {% if form.non_field_errors %}<div style="color: #dc2626; font-size: 0.9rem; margin-bottom: 12px;">{{ form.non_field_errors.0 }}</div>{% endif %}
             <div class="input-wrapper">
-                {{ form.content }}
+                <textarea name="content" id="bazarListInput" rows="4" placeholder="প্রতিটি আইটেম আলাদা লাইনে লিখুন (১. আলু ২. পেঁয়াজ)" style="width:100%;min-height:120px;padding:16px 48px 16px 16px;border:2px solid #e5e7eb;border-radius:12px;font-family:inherit;font-size:1rem;resize:vertical;">{{ form.content.value|default:"" }}</textarea>
                 <span class="sparkle-icon">✨</span>
+                {% if form.content.errors %}<div style="color: #dc2626; font-size: 0.9rem; margin-top: 8px;">{{ form.content.errors.0 }}</div>{% endif %}
             </div>
             <button type="submit" class="btn-send">
                 <span class="paper-plane">✈️</span> লিস্ট পাঠান
@@ -40,26 +43,83 @@
         </form>
     </div>
 
+    <div class="history-folders history-folders-stacked">
+        <div class="folder-row">
+            <div class="folder-card delivered-folder collapsed">
+                <h4 class="folder-title folder-title-click" data-folder="delivered" tabindex="0">Delivered <span class="folder-count">{{ delivered_lists|length }}</span> <span class="folder-chevron">▼</span></h4>
+                {% if delivered_lists %}
+                <div class="folder-lists folder-lists-delivered folder-cards">
+                    {% for list in delivered_lists %}
+                    <div class="list-card folder-list-card">
+                        <div class="list-card-main">
+                            <span class="list-icon">📄</span>
+                            <div class="list-info">
+                                <span class="list-id">{{ list.list_id }}</span>
+                                <span class="list-content-preview list-preview-click" data-list-id="{{ list.list_id }}" title="বিস্তারিত দেখতে ক্লিক করুন">{{ list.content|truncatechars:50|default:"-" }}</span>
+                                <template class="list-full-content" data-list-id="{{ list.list_id }}">{{ list.content|numbered_list|linebreaksbr }}</template>
+                                <span class="list-date"><span class="list-datetime">{% if list.delivered_at %}{{ list.delivered_at|date_card }}{% else %}{{ list.created_at|date_card }}{% endif %}</span></span>
+                            </div>
+                        </div>
+                        <div class="list-actions">
+                            <a href="#" class="action-btn comment-btn open-comment-modal" title="মন্তব্য" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="folder-empty">এখনও ডেলিভার্ড লিস্ট নেই।</p>
+                {% endif %}
+            </div>
+            <div class="folder-card declined-folder collapsed">
+                <h4 class="folder-title folder-title-click" data-folder="declined" tabindex="0">Declined <span class="folder-count">{{ declined_lists|length }}</span> <span class="folder-chevron">▼</span></h4>
+                {% if declined_lists %}
+                <div class="folder-lists folder-lists-declined folder-cards">
+                    {% for list in declined_lists %}
+                    <div class="list-card folder-list-card">
+                        <div class="list-card-main">
+                            <span class="list-icon">📄</span>
+                            <div class="list-info">
+                                <span class="list-id">{{ list.list_id }}</span>
+                                <span class="list-content-preview list-preview-click" data-list-id="{{ list.list_id }}" title="বিস্তারিত দেখতে ক্লিক করুন">{{ list.content|truncatechars:50|default:"-" }}</span>
+                                <template class="list-full-content" data-list-id="{{ list.list_id }}">{{ list.content|numbered_list|linebreaksbr }}</template>
+                                <span class="list-date"><span class="list-datetime">{% if list.declined_at %}{{ list.declined_at|date_card }}{% else %}{{ list.created_at|date_card }}{% endif %}</span></span>
+                            </div>
+                        </div>
+                        <div class="list-actions">
+                            <a href="#" class="action-btn comment-btn open-comment-modal" title="মন্তব্য" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="folder-empty">এখনও প্রত্যাখ্যান লিস্ট নেই।</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <div class="list-history">
         <h3 class="history-title">লিস্ট হিস্টোরি</h3>
         {% if lists %}
         <div class="list-cards">
             {% for list in lists %}
-            <div class="list-card">
+            <div class="list-card list-card-{{ list.status }}">
                 <div class="list-card-main">
                     <span class="list-icon">📄</span>
                     <div class="list-info">
-                        <span class="list-id">#{{ list.list_id }}</span>
-                        <span class="list-content-preview">{{ list.content|truncatewords:8|default:"-" }}</span>
-                        <span class="list-date">{{ list.created_at|date:"M d, Y" }}</span>
+                        <span class="list-id">{{ list.list_id }}</span>
+                        <span class="list-content-preview list-preview-click" data-list-id="{{ list.list_id }}" title="বিস্তারিত দেখতে ক্লিক করুন">{{ list.content|truncatechars:50|default:"-" }}</span>
+                        <template class="list-full-content" data-list-id="{{ list.list_id }}">{{ list.content|numbered_list|linebreaksbr }}</template>
+                        <span class="list-date"><span class="list-datetime">{{ list.created_at|date_card }}</span></span>
+                        <span class="status-badge status-{{ list.status }} status-one-line">{{ list.note|default:list.get_status_display }}</span>
                     </div>
-                    <span class="status-badge status-{{ list.status }}">{{ list.get_status_display }}</span>
                 </div>
                 <div class="list-actions">
+                    <a href="#" class="action-btn comment-btn open-comment-modal" title="মন্তব্য" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
                     {% if list.status == 'pending' %}
                     <a href="{% url 'update_market_list' list.pk %}" class="action-btn edit-btn" title="আপডেট">✏️</a>
+                    <a href="{% url 'delete_market_list' list.pk %}" class="action-btn delete-btn delete-list-btn" title="মুছুন" data-pk="{{ list.pk }}">🗑️</a>
                     {% endif %}
-                    <a href="{% url 'delete_market_list' list.pk %}" class="action-btn delete-btn" title="মুছুন" onclick="return confirm('লিস্ট মুছে ফেলবেন?');">🗑️</a>
                 </div>
             </div>
             {% endfor %}
@@ -70,7 +130,66 @@
     </div>
 </div>
 
+<div id="listDetailModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>বাজার লিস্ট বিস্তারিত <span id="modalListId"></span></h3>
+            <button type="button" class="modal-close" aria-label="বন্ধ">&times;</button>
+        </div>
+        <div class="modal-body" id="modalListContent"></div>
+    </div>
+</div>
+
+<div id="deleteConfirmModal" class="modal-overlay">
+    <div class="modal-box modal-delete">
+        <div class="modal-body modal-delete-body">
+            <div class="modal-delete-actions">
+                <button type="button" class="btn btn-outline modal-cancel">No</button>
+                <a href="#" id="deleteConfirmBtn" class="btn btn-primary">Yes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div id="userCommentModal" class="comment-modal-overlay">
+    <div class="comment-modal-box">
+        <div class="comment-modal-header">
+            <h3>মন্তব্য</h3>
+            <button type="button" class="comment-modal-close" aria-label="বন্ধ">&times;</button>
+        </div>
+        <iframe id="userCommentIframe" class="comment-modal-iframe" src="about:blank"></iframe>
+    </div>
+</div>
+
 <style>
+.comment-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.comment-modal-overlay.active { display: flex; }
+.comment-modal-box { background: white; border-radius: 16px; width: 100%; max-width: 560px; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+.comment-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
+.comment-modal-header h3 { margin: 0; font-size: 1.1rem; }
+.comment-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; line-height: 1; padding: 0 8px; }
+.comment-modal-close:hover { color: #1f2937; }
+.comment-modal-iframe { width: 100%; height: 60vh; min-height: 400px; border: none; display: block; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.active { display: flex; }
+.modal-box { background: white; border-radius: 16px; max-width: 480px; width: 100%; max-height: 80vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+.modal-box.modal-sm { max-width: 320px; }
+.modal-box.modal-delete { max-width: 220px; padding: 0; }
+.modal-delete-body { padding: 12px 16px; text-align: center; }
+.modal-delete-body p { margin: 0; }
+.modal-delete-actions { display: flex; gap: 8px; justify-content: center; }
+.modal-delete-actions .btn { padding: 6px 14px; font-size: 0.85rem; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
+.modal-header h3 { margin: 0; font-size: 1.1rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; line-height: 1; padding: 0 4px; }
+.modal-close:hover { color: #1f2937; }
+.modal-body { padding: 20px; overflow-y: auto; max-height: 60vh; white-space: pre-wrap; font-size: 0.95rem; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: #1f2937; color: white; border-radius: 50px; font-size: 0.9rem; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1100; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; }
+.toast.show { opacity: 1; visibility: visible; }
+.toast.success { background: #059669; }
+.toast.error { background: #dc2626; }
 .family-dashboard { max-width: 560px; margin: 0 auto; }
 .family-header {
     display: flex;
@@ -86,9 +205,14 @@
     background: var(--primary);
     display: flex; align-items: center; justify-content: center;
     font-size: 1.5rem;
+    flex-shrink: 0;
 }
+.avatar-link { text-decoration: none; overflow: hidden; }
+.avatar-link img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .account-info .label { display: block; font-size: 0.75rem; color: #6b7280; }
-.account-info .username { font-weight: 700; font-size: 1.1rem; }
+.account-info .username, .account-info .username-link { font-weight: 700; font-size: 1.1rem; }
+.username-link { color: inherit; text-decoration: none; }
+.username-link:hover { color: var(--primary); }
 .header-icons { display: flex; gap: 12px; }
 .msg-icon-wrap { position: relative; }
 .msg-badge {
@@ -104,7 +228,10 @@
     background: #f3f4f6;
     display: flex; align-items: center; justify-content: center;
     text-decoration: none;
+    color: var(--text);
 }
+.icon-btn:hover { background: #e5e7eb; }
+.logout-icon-btn svg { display: block; }
 .market-list-section { padding: 28px; margin-bottom: 28px; }
 .section-title { font-size: 1.5rem; margin-bottom: 4px; }
 .section-subtitle { color: #6b7280; margin-bottom: 20px; font-size: 1rem; }
@@ -153,12 +280,27 @@
     justify-content: space-between;
     align-items: center;
 }
+.list-card-pending { border-left: 4px solid #eab308; background: linear-gradient(90deg, #fefce8 0%, #fff 12%); }
+.list-card-approved { border-left: 4px solid #2563eb; background: linear-gradient(90deg, #eff6ff 0%, #fff 12%); }
 .list-card-main { display: flex; align-items: center; gap: 12px; flex: 1; }
 .list-icon { font-size: 1.5rem; }
 .list-info { display: flex; flex-direction: column; gap: 2px; }
 .list-id { font-weight: 700; font-size: 0.9rem; }
-.list-content-preview { color: #4b5563; font-size: 0.95rem; }
-.list-date { font-size: 0.8rem; color: #9ca3af; }
+.list-content-preview { color: #4b5563; font-size: 0.95rem; cursor: pointer; }
+.list-content-preview:hover { color: var(--primary); text-decoration: underline; }
+.list-date { font-size: 0.8rem; }
+.list-datetime {
+    display: inline-block;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e40af;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #93c5fd;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+}
+.folder-meta .list-datetime { font-size: 0.75rem; padding: 3px 8px; }
 .status-badge {
     padding: 4px 12px;
     border-radius: 20px;
@@ -168,35 +310,142 @@
 .status-pending { background: #f3f4f6; color: #4b5563; }
 .status-approved { background: #dbeafe; color: #1e40af; }
 .status-delivered { background: #d1fae5; color: #065f46; }
+.status-declined { background: #fee2e2; color: #991b1b; }
 .list-actions { display: flex; gap: 8px; }
 .action-btn { padding: 6px 10px; border-radius: 8px; text-decoration: none; }
 .edit-btn { background: #dbeafe; }
 .delete-btn { background: #fee2e2; }
+.comment-btn { background: #d1fae5; color: #065f46; }
 .no-lists { color: #6b7280; text-align: center; padding: 24px; }
+.history-folders { margin-top: 20px; margin-bottom: 24px; }
+.history-folders-stacked .folder-row { display: flex; flex-direction: column; gap: 12px; }
+.folder-cards { display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; }
+.folder-list-card { margin: 0; }
+.folder-card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.delivered-folder { border-top: 3px solid #059669; }
+.declined-folder { border-top: 3px solid #dc2626; }
+.folder-title { font-size: 0.9rem; margin: 0 0 8px 0; color: #374151; display: flex; align-items: center; gap: 6px; }
+.folder-title-click { cursor: pointer; user-select: none; padding: 4px 0; }
+.folder-title-click:hover { opacity: 0.9; }
+.folder-chevron { font-size: 0.7rem; margin-left: 4px; transition: transform 0.25s ease; }
+.folder-card.collapsed .folder-chevron { transform: rotate(-90deg); }
+.folder-card.collapsed .folder-lists { display: none !important; }
+.folder-count { background: #e5e7eb; color: #4b5563; font-size: 0.75rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
+.delivered-folder .folder-count { background: #d1fae5; color: #065f46; }
+.declined-folder .folder-count { background: #fee2e2; color: #991b1b; }
+.folder-lists { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
+.folder-list-item { padding: 8px 10px; background: #f9fafb; border-radius: 6px; font-size: 0.85rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
+.folder-serial { font-weight: 700; color: #6b7280; flex-shrink: 0; }
+.folder-list-item .list-content-preview { flex: 1; min-width: 0; }
+.folder-meta { font-size: 0.75rem; color: #9ca3af; }
+.folder-comment-btn { font-size: 0.9rem; padding: 2px 6px; margin-left: auto; }
+.folder-empty { color: #9ca3af; font-size: 0.8rem; padding: 8px 0; margin: 0; }
+.status-one-line { white-space: nowrap; display: inline-block; margin-top: 4px; }
+@media (max-width: 768px) {
+    .family-dashboard { max-width: 100%; padding: 0; }
+    .market-list-section { padding: 20px; }
+    .modal-box { margin: 12px; max-height: 85vh; }
+    .modal-overlay { padding: 12px; }
+}
 @media (max-width: 600px) {
     .family-header { flex-direction: column; align-items: flex-start; gap: 12px; }
     .list-card-main { flex-wrap: wrap; }
+    .list-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .list-actions { width: 100%; justify-content: flex-end; }
+    .section-title { font-size: 1.3rem; }
+    .input-wrapper textarea { padding: 14px; font-size: 0.95rem; }
+    .comment-modal-iframe { min-height: 50vh; }
+}
+@media (max-width: 400px) {
+    .market-list-section { padding: 16px; }
+    .btn-send { padding: 14px 20px; font-size: 1rem; }
+    .list-id { font-size: 0.85rem; }
+    .avatar { width: 40px; height: 40px; font-size: 1.2rem; }
 }
 </style>
 {% endblock %}
 {% block extra_js %}
 <script>
 (function() {
-    var badge = document.querySelector('.msg-badge');
-    if (!badge) return;
-    function updateCount() {
-        fetch('{% url "message_unread_count" %}')
-            .then(function(r) { return r.json(); })
-            .then(function(d) {
-                if (d.unread > 0) {
-                    badge.textContent = d.unread;
-                    badge.style.display = 'flex';
-                } else {
-                    badge.style.display = 'none';
-                }
-            });
+    var toast = document.getElementById('toast');
+    var params = new URLSearchParams(window.location.search);
+    var t = params.get('toast');
+    if (t === 'sent') {
+        toast.textContent = 'লিস্ট সফলভাবে পাঠানো হয়েছে!';
+        toast.className = 'toast show success';
+        setTimeout(function(){ toast.classList.remove('show'); history.replaceState({}, '', window.location.pathname); }, 2500);
+    } else if (t === 'deleted') {
+        toast.textContent = 'লিস্ট মুছে ফেলা হয়েছে!';
+        toast.className = 'toast show success';
+        setTimeout(function(){ toast.classList.remove('show'); history.replaceState({}, '', window.location.pathname); }, 2500);
     }
-    setInterval(updateCount, 20000);
-})();
+
+    var detailModal = document.getElementById('listDetailModal');
+    var deleteModal = document.getElementById('deleteConfirmModal');
+    document.querySelectorAll('.list-preview-click').forEach(function(el) {
+        el.addEventListener('click', function() {
+            var id = this.getAttribute('data-list-id');
+            var tpl = document.querySelector('template.list-full-content[data-list-id="' + id + '"]');
+            document.getElementById('modalListId').textContent = '#' + id;
+            document.getElementById('modalListContent').innerHTML = tpl ? tpl.innerHTML : '-';
+            detailModal.classList.add('active');
+        });
+    });
+    document.querySelector('#listDetailModal .modal-close').addEventListener('click', function() {
+        detailModal.classList.remove('active');
+    });
+    detailModal.addEventListener('click', function(e) {
+        if (e.target === detailModal) detailModal.classList.remove('active');
+    });    document.querySelectorAll('.delete-list-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('deleteConfirmBtn').href = this.href;
+            deleteModal.classList.add('active');
+        });
+    });
+    document.querySelector('.modal-cancel').addEventListener('click', function() {
+        deleteModal.classList.remove('active');
+    });
+    document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+        if (e.target === deleteModal) deleteModal.classList.remove('active');
+    });
+    document.querySelectorAll('.folder-title-click').forEach(function(title) {
+        title.addEventListener('click', function() {
+            var card = title.closest('.folder-card');
+            if (card) card.classList.toggle('collapsed');
+        });
+    });
+    var commentModal = document.getElementById('userCommentModal');
+    var commentIframe = document.getElementById('userCommentIframe');
+    document.querySelectorAll('.open-comment-modal').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            commentIframe.src = this.getAttribute('data-comment-url');
+            commentModal.classList.add('active');
+        });
+    });
+    commentModal.querySelector('.comment-modal-close').addEventListener('click', function() {
+        commentIframe.src = 'about:blank';
+        commentModal.classList.remove('active');
+    });
+    commentModal.addEventListener('click', function(e) {
+        if (e.target === commentModal) {
+            commentIframe.src = 'about:blank';
+            commentModal.classList.remove('active');
+        }
+    });
+})();    (function(){
+        var textarea = document.getElementById('bazarListInput');
+        var form = document.getElementById('bazarListForm');
+        var btnSend = form && form.querySelector('.btn-send');
+        if (!textarea || !form || !btnSend) return;
+        function cleanContent() {
+            var v = textarea.value;
+            var lines = v.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+            textarea.value = lines.join('\n');
+        }
+        textarea.addEventListener('blur', cleanContent);
+        form.addEventListener('submit', function() { cleanContent(); });
+    })();
 </script>
 {% endblock %}

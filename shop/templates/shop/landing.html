@@ -1,14 +1,29 @@
 {% extends 'shop/base.html' %}
 {% block title %}EasyShop - বাজার সহায়ক{% endblock %}
+{% block extra_css %}
+<style>
+@media (max-width: 600px) {
+    .landing-hero h1 { font-size: 1.8rem !important; }
+    .landing-hero p { font-size: 1rem !important; }
+    .landing-cards { grid-template-columns: 1fr !important; gap: 16px !important; }
+    .landing-card .card { padding: 20px !important; }
+    .landing-card .card h2 { font-size: 1.2rem !important; }
+}
+@media (max-width: 400px) {
+    .landing-hero h1 { font-size: 1.5rem !important; }
+}
+</style>
+{% endblock %}
 {% block content %}
-<div class="container">
-    <div style="text-align: center; margin-bottom: 48px;">
+<div class="landing-page-wrap" style="display: flex; align-items: flex-start; justify-content: center; min-height: calc(100vh - 80px); padding: 48px 24px 24px;">
+<div class="container" style="width: 100%;">
+    <div class="landing-hero" style="text-align: center; margin-bottom: 48px;">
         <h1 style="font-size: 2.5rem; color: var(--primary); margin-bottom: 12px;">🛒 EasyShop</h1>
         <p style="font-size: 1.2rem; color: var(--text); opacity: 0.9;">বাজারের লিস্ট দিলেই ঠিকানায় পৌঁছে দেব</p>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; max-width: 800px; margin: 0 auto;">
-        <div class="card" style="transition: transform 0.3s;">
+    <div class="landing-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px; max-width: 800px; margin: 0 auto;">
+        <div class="landing-card card" style="transition: transform 0.3s;">
             <div style="text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 16px;">👨‍👩‍👧‍👦</div>
                 <h2 style="color: var(--primary); margin-bottom: 12px;">ফ্যামিলি</h2>
@@ -20,7 +35,7 @@
             </div>
         </div>
 
-        <div class="card" style="transition: transform 0.3s;">
+        <div class="landing-card card" style="transition: transform 0.3s;">
             <div style="text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 16px;">📋</div>
                 <h2 style="color: var(--primary); margin-bottom: 12px;">ম্যানেজমেন্ট</h2>
@@ -30,5 +45,6 @@
         </div>
     </div>
 
+</div>
 </div>
 {% endblock %}

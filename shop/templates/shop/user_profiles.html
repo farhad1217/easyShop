@@ -1,0 +1,141 @@
+{% extends 'shop/base.html' %}
+{% block title %}User Profiles - EasyShop{% endblock %}
+{% block extra_css %}
+.up-theme { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%) !important; min-height: 100vh; background-attachment: fixed; color: white; }
+.up-theme .container { max-width: 800px; }
+.up-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 12px; }
+.up-header h1 { font-size: 1.4rem; margin: 0; }
+.up-back { color: #60a5fa; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; padding: 8px; border-radius: 10px; }
+.up-back:hover { background: rgba(96,165,250,0.15); }
+.profile-card {
+    background: #374151;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid #4b5563;
+}
+.profile-card .row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 8px; }
+.profile-card .row:last-of-type { margin-bottom: 0; }
+.profile-card .label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
+.profile-card .val { font-size: 0.95rem; color: #e5e7eb; }
+.profile-card .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+.profile-card .btn-order { padding: 8px 16px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-size: 0.9rem; }
+.profile-card .btn-order:hover { background: #3b82f6; color: white; }
+.profile-card .btn-delete { padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+.profile-card .btn-delete:hover { background: #ef4444; }
+.up-empty { text-align: center; padding: 48px 24px; color: #9ca3af; }
+.up-empty a { color: #60a5fa; }
+.up-trash-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 18px; background: #4b5563; color: #fbbf24;
+    border: 1px solid #6b7280; border-radius: 10px;
+    font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    font-family: inherit;
+}
+.up-trash-btn:hover { background: #6b7280; }
+.up-trash-badge { background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+.up-trash-section { margin-top: 24px; }
+.trash-card { opacity: 0.95; }
+.trash-deleted-at { font-size: 0.8rem; color: #fbbf24; margin-top: 8px; }
+.btn-restore { padding: 8px 16px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+.btn-restore:hover { background: #10b981; }
+.btn-permanent { padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
+.btn-permanent:hover { background: #ef4444; }
+@media (max-width: 768px) {
+    .up-theme .container { padding: 0 16px; max-width: 100%; }
+    .up-header { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 600px) {
+    .profile-card { padding: 16px; }
+    .profile-card .row { flex-direction: column; }
+    .profile-card .row > div { min-width: 100% !important; }
+    .profile-card .actions { flex-direction: column; }
+    .profile-card .actions a, .profile-card .actions form { width: 100%; }
+    .profile-card .btn-order, .profile-card .btn-delete { width: 100%; text-align: center; display: inline-block; }
+}
+{% endblock %}
+{% block content %}
+<div class="up-theme">
+<div class="container">
+    <div class="up-header">
+        <div>
+            <a href="{% url 'management_dashboard' %}" class="up-back" title="ড্যাশবোর্ডে ফিরে যান">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </a>
+            <h1 style="margin-top: 12px;">User Profiles</h1>
+        </div>
+        <button type="button" class="up-trash-btn" id="trashToggleBtn" title="মুছে ফেলা প্রোফাইল">
+            🗑️ ট্র্যাশ {% if trash_count %}<span class="up-trash-badge">{{ trash_count }}</span>{% endif %}
+        </button>
+    </div>
+
+    <div id="mainProfiles">
+    {% for profile in profiles %}
+    <div class="profile-card">
+        <div class="row">
+            <div><span class="label">Password</span><div class="val">•••••• <a href="/admin/auth/user/{{ profile.user_id }}/change/" target="_blank" style="color: #60a5fa; font-size: 0.85rem;">Reset</a></div></div>
+            <div><span class="label">Full Name</span><div class="val">{{ profile.full_name|default:"—" }}</div></div>
+            <div><span class="label">Phone</span><div class="val">{{ profile.phone|default:"—" }}</div></div>
+        </div>
+        <div class="row">
+            <div style="flex: 1; min-width: 200px;"><span class="label">Address</span><div class="val">{{ profile.address|default:"—" }}</div></div>
+        </div>
+        <div class="actions">
+            <a href="{% url 'user_profile_detail' profile.user_id %}" class="btn-order">See Profiles & Order History</a>
+            <form method="post" action="{% url 'soft_delete_profile' profile.user_id %}" style="display: inline;" onsubmit="return confirm('এই প্রোফাইল ট্র্যাশে পাঠাতে চান?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete">Delete (ট্র্যাশে পাঠান)</button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="up-empty">কোনো ইউজার প্রোফাইল নেই।</div>
+    {% endfor %}
+    </div>
+
+    <div id="trashSection" class="up-trash-section" style="display: none;">
+        <h3 style="margin: 0 0 16px 0; color: #fbbf24;">🗑️ মুছে ফেলা প্রোফাইল</h3>
+        <p style="margin-bottom: 16px; color: #9ca3af; font-size: 0.9rem;">প্রোফাইল পুনরুদ্ধার বা স্থায়ীভাবে মুছুন</p>
+        {% for profile in trash_profiles %}
+        <div class="profile-card trash-card">
+            <div class="row">
+                <div><span class="label">Full Name</span><div class="val">{{ profile.full_name|default:"—" }}</div></div>
+                <div><span class="label">Phone</span><div class="val">{{ profile.phone|default:"—" }}</div></div>
+            </div>
+            <div class="row">
+                <div style="flex: 1; min-width: 200px;"><span class="label">Address</span><div class="val">{{ profile.address|default:"—" }}</div></div>
+            </div>
+            <div class="trash-deleted-at">মুছে ফেলা: {{ profile.deleted_at|date:"d/m/Y H:i" }}</div>
+            <div class="actions">
+                <form method="post" action="{% url 'restore_profile' profile.user_id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-restore">পুনরুদ্ধার (Restore)</button>
+                </form>
+                <form method="post" action="{% url 'permanent_delete_profile' profile.user_id %}" style="display: inline;" onsubmit="return confirm('স্থায়ীভাবে মুছবেন?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-permanent">স্থায়ীভাবে মুছুন</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="up-empty">ট্র্যাশ খালি।</div>
+        {% endfor %}
+    </div>
+</div>
+</div>
+<script>
+(function(){
+    var btn = document.getElementById('trashToggleBtn');
+    var main = document.getElementById('mainProfiles');
+    var trash = document.getElementById('trashSection');
+    if (btn && main && trash) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var showTrash = trash.style.display === 'none' || trash.style.display === '';
+            main.style.display = showTrash ? 'none' : 'block';
+            trash.style.display = showTrash ? 'block' : 'none';
+        });
+    }
+})();
+</script>
+{% endblock %}

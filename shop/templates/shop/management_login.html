@@ -1,27 +1,120 @@
 {% extends 'shop/base.html' %}
 {% block title %}ম্যানেজমেন্ট লগইন - EasyShop{% endblock %}
 {% block content %}
-<div class="container" style="max-width: 420px;">
+<div class="login-page-wrap" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 80px); padding: 24px 0;">
+<div class="container" style="max-width: 420px; width: 100%;">
     <div class="card">
+        <a href="{% url 'landing_page' %}" class="back-to-home-btn btn-shine" style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            হোমে ফিরে যান
+        </a>
         <div style="text-align: center; margin-bottom: 24px;">
             <h1 style="color: var(--primary);">📋 ম্যানেজমেন্ট লগইন</h1>
             <p style="margin-top: 8px;">এডমিন একাউন্ট দিয়ে লগইন করুন</p>
         </div>
-        <form method="post">
+        <form method="post" id="adminLoginForm">
             {% csrf_token %}
+            {% if login_error %}<p class="login-error" style="color:#dc2626;font-weight:600;margin-bottom:16px;">{{ login_error }}</p>{% endif %}
             <div style="margin-bottom: 16px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">ইউজারনেম</label>
-                <input type="text" name="username" required style="width:100%; padding:12px 16px; border:2px solid #e5e7eb; border-radius:10px;">
+                <input type="text" name="username" id="adminUsername" required style="width:100%; padding:12px 16px; border:2px solid #e5e7eb; border-radius:10px;">
             </div>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 16px;">
                 <label style="display: block; font-weight: 600; margin-bottom: 6px;">পাসওয়ার্ড</label>
-                <input type="password" name="password" required style="width:100%; padding:12px 16px; border:2px solid #e5e7eb; border-radius:10px;">
+                <div style="position: relative;">
+                    <input type="password" name="password" id="adminPassword" required style="width:100%; padding:12px 44px 12px 16px; border:2px solid #e5e7eb; border-radius:10px;">
+                    <button type="button" id="adminPwToggle" aria-label="Show password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;color:#6b7280;font-size:1rem;">🔒</button>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;">এডমিন লগইন</button>
+            <div class="remember-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+                <input type="checkbox" name="remember" id="adminRemember">
+                <label for="adminRemember">Remember Me</label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-shine" style="width: 100%;">এডমিন লগইন</button>
         </form>
-        <p style="text-align: center; margin-top: 16px;">
-            <a href="{% url 'landing_page' %}">← হোমে ফিরে যান</a>
-        </p>
+<style>
+.back-to-home-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #f3f4f6;
+    color: #4b5563;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+    border: 1px solid #e5e7eb;
+}
+.back-to-home-btn:hover {
+    background: #e5e7eb;
+    color: #1f2937;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+</style>
     </div>
 </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function(){
+    function triggerShine(btn) {
+        if (btn && btn.classList) {
+            btn.classList.remove('shine-animate');
+            void btn.offsetWidth;
+            btn.classList.add('shine-animate');
+            setTimeout(function(){ btn.classList.remove('shine-animate'); }, 600);
+        }
+    }
+    var form = document.getElementById('adminLoginForm');
+    if (form) {
+        form.addEventListener('submit', function() { triggerShine(form.querySelector('button[type="submit"]')); });
+        form.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                var target = e.target;
+                if (target && target.type === 'checkbox') return;
+                triggerShine(form.querySelector('button[type="submit"]'));
+                if (!form.checkValidity()) return;
+                e.preventDefault();
+                form.requestSubmit();
+            }
+        });
+    }
+    document.querySelectorAll('.btn-shine').forEach(function(b) {
+        b.addEventListener('click', function() { triggerShine(b); });
+    });
+})();
+(function(){
+    var KEY = 'easyshop_admin_login';
+    var form = document.getElementById('adminLoginForm');
+    var userIn = document.getElementById('adminUsername');
+    var passIn = document.getElementById('adminPassword');
+    var remIn = document.getElementById('adminRemember');
+    var saved = localStorage.getItem(KEY);
+    if (saved) {
+        try {
+            var d = JSON.parse(saved);
+            if (d.u) userIn.value = d.u;
+            if (d.p) passIn.value = d.p;
+            if (d.r) remIn.checked = true;
+        } catch(e){}
+    }
+    var pwToggle = document.getElementById('adminPwToggle');
+    if (pwToggle && passIn) {
+        pwToggle.addEventListener('click', function() {
+            var isPass = passIn.type === 'password';
+            passIn.type = isPass ? 'text' : 'password';
+            pwToggle.textContent = isPass ? '🔓' : '🔒';
+        });
+    }
+    form.addEventListener('submit', function() {
+        if (remIn.checked) {
+            localStorage.setItem(KEY, JSON.stringify({ u: userIn.value, p: passIn.value, r: true }));
+        } else {
+            localStorage.removeItem(KEY);
+        }
+    });
+})();
+</script>
 {% endblock %}
