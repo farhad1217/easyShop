@@ -14,6 +14,30 @@ def numbered_list(value):
 
 
 @register.filter
+def first_three_preview(value):
+    """2 lines, number points. Max 4 items so no incomplete point at line end."""
+    if not value:
+        return '-'
+    import re
+    lines = [s.strip() for s in str(value).splitlines() if s.strip()]
+    if not lines:
+        return '-'
+    def strip_number(txt):
+        return re.sub(r'^[\d\u09E6-\u09EF\u0966-\u096F]+\s*[\.\)]\s*', '', txt, count=1).strip() or txt
+    items = [strip_number(line) for line in lines]
+    # Show max 3 items so 2-line clamp never cuts an incomplete number
+    take = items[:3]
+    numbered = [f'{i}. {item}' for i, item in enumerate(take, 1)]
+    if len(numbered) == 1:
+        return numbered[0]
+    if len(numbered) == 2:
+        return numbered[0] + ' • ' + numbered[1]
+    line1 = numbered[0] + ' • ' + numbered[1]
+    line2 = ' • '.join(numbered[2:])
+    return line1 + '\n' + line2
+
+
+@register.filter
 def date_ampm(value):
     """Format datetime as dd/mm/yyyy h:mm AM/PM (always English AM/PM, no locale)."""
     if value is None:

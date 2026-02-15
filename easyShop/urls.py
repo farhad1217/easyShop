@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve as static_serve
 from shop import views
 
 urlpatterns = [
@@ -40,6 +41,7 @@ urlpatterns = [
     path('management/trash/<int:user_id>/restore/', views.restore_profile, name='restore_profile'),
     path('management/trash/<int:user_id>/permanent-delete/', views.permanent_delete_profile, name='permanent_delete_profile'),
     path('management/user/<int:user_id>/', views.user_profile_detail, name='user_profile_detail'),
+    path('management/user/<int:user_id>/edit/', views.edit_user_profile, name='edit_user_profile'),
     path('management/profile/<int:user_id>/save-delivery-path/', views.save_delivery_path, name='save_delivery_path'),
     path('management/profile/<int:user_id>/update-address/', views.update_address, name='update_address'),
     path('management/pathway/images/', views.pathway_images, name='pathway_images'),
@@ -53,16 +55,26 @@ urlpatterns = [
     path('management/deliver/<int:pk>/', views.deliver_list, name='deliver_list'),
     path('management/restore/<int:pk>/', views.restore_list, name='restore_list'),
     path('management/delete/<int:pk>/', views.admin_delete_list, name='admin_delete_list'),
+    path('management/list/<int:pk>/edit/', views.admin_edit_list, name='admin_edit_list'),
     path('management/list/<int:pk>/ai-generate/', views.ai_generate_list, name='ai_generate_list'),
     path('management/list-entry/user-view/', views.list_entry_user_view, name='list_entry_user_view'),
     path('management/list-entry/consolidated/', views.list_entry_consolidated, name='list_entry_consolidated'),
     path('management/list-entry/consolidated/pdf/', views.list_entry_consolidated_pdf, name='list_entry_consolidated_pdf'),
     path('management/delivery-flow/save/', views.save_delivery_flow, name='save_delivery_flow'),
+    path('management/send-status-presets/save/', views.save_send_status_presets, name='save_send_status_presets'),
     path('list/<int:pk>/comments/', views.list_comment_thread, name='list_comment_thread'),
     path('messages/', views.messaging_inbox, name='messaging_inbox'),
     path('messages/<int:user_id>/', views.messaging_thread, name='messaging_thread'),
     path('messages/unread-count/', views.message_unread_count, name='message_unread_count'),
     path('logout/', views.user_logout, name='user_logout'),
 ]
+# Media files (profile pictures, pathway images, etc.)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # Production: Django serves media so profile pictures and uploads are visible on live
+    media_prefix = settings.MEDIA_URL.strip('/')
+    if media_prefix:
+        urlpatterns += [
+            path(media_prefix + '/<path:path>', static_serve, {'document_root': settings.MEDIA_ROOT}),
+        ]

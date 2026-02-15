@@ -52,10 +52,9 @@ class MarketList(models.Model):
     """Market/Grocery list submitted by a family."""
     STATUS_CHOICES = [
         ('pending', 'পেন্ডিং'),
-        ('approved', 'প্রসেসিং...'),
-        ('delivered', 'পৌঁছানো'),
+        ('approved', 'Approved'),
+        ('delivered', 'Delivered'),
         ('declined', 'প্রত্যাখ্যান'),
-        ('late_transferred', 'Late Transfered Order'),
     ]
     list_id = models.CharField(max_length=20, unique=True, blank=True, default='', editable=False)
     family = models.ForeignKey(User, on_delete=models.CASCADE, related_name='market_lists')
@@ -78,6 +77,18 @@ class MarketList(models.Model):
             super().save(update_fields=['list_id'])
         else:
             super().save(*args, **kwargs)
+
+
+class SendStatusPreset(models.Model):
+    """Saved admin presets for 'Send Order Status' messages."""
+    text = models.CharField(max_length=255)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+
+    def __str__(self):
+        return self.text
 
     def __str__(self):
         return f"#{self.list_id} - {self.family.username}"
@@ -191,6 +202,7 @@ class DeliveryFlow(models.Model):
     label = models.CharField(max_length=200)
     start_time = models.TimeField()
     end_time = models.TimeField()
+    status_text = models.CharField(max_length=255, default='Approved', blank=True)
     sort_order = models.PositiveIntegerField(default=0)
 
     class Meta:

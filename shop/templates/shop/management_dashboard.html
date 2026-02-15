@@ -2,57 +2,167 @@
 {% load shop_extras %}
 {% block title %}এডমিন ড্যাশবোর্ড - EasyShop{% endblock %}
 {% block extra_css %}
-.admin-theme { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%) !important; min-height: 100vh; background-attachment: fixed; }
-.admin-theme .container { max-width: 900px; }
+/* এডমিন মোডে বডির লাইট টিল/সায়ান স্ট্রিপ সরান – পুরো ব্যাকগ্রাউন্ড ডার্ক */
+body { background: #020617 !important; }
+.admin-theme {
+    background: #020617;
+    min-height: 100vh;
+}
+.admin-theme .container {
+    max-width: 960px;
+    padding-bottom: 40px;
+}
 .admin-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 0;
+    padding: 22px 18px;
+    margin-bottom: 10px;
     color: white;
+    border-radius: 18px;
+    background: radial-gradient(circle at top left, rgba(56,189,248,0.25), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(244,114,182,0.28), transparent 55%),
+                rgba(15,23,42,0.92);
+    box-shadow: 0 22px 60px rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.5);
+    backdrop-filter: blur(16px);
 }
-.admin-brand { display: flex; align-items: center; gap: 12px; }
-.admin-brand .icon { font-size: 1.8rem; }
-.admin-brand h1 { font-size: 1.2rem; margin: 0; }
-.admin-brand .sub { font-size: 0.85rem; opacity: 0.8; }
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.admin-brand .icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 0 10px rgba(251,191,36,0.5));
+}
+.admin-brand h1 {
+    font-size: 1.35rem;
+    margin: 0;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.admin-brand .sub {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
 .admin-header-icons a {
     color: white;
     margin-left: 16px;
     text-decoration: none;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     display: inline-flex;
     align-items: center;
-    padding: 8px;
-    border-radius: 10px;
-    transition: background 0.2s;
+    padding: 9px 12px;
+    border-radius: 9999px;
+    border: 1px solid rgba(148,163,184,0.6);
+    background: radial-gradient(circle at top, rgba(15,23,42,0.9), rgba(15,23,42,0.7));
+    box-shadow: 0 10px 30px rgba(15,23,42,0.8);
+    transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
-.admin-header-icons a:hover { background: rgba(255,255,255,0.15); }
+.admin-header-icons a:hover {
+    background: radial-gradient(circle at top, rgba(30,64,175,0.95), rgba(15,23,42,0.9));
+    border-color: rgba(191,219,254,0.9);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 40px rgba(30,64,175,0.75);
+}
 .logout-btn svg { display: block; }
 .filter-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 16px;
 }
 .filter-card {
-    background: #374151;
+    position: relative;
+    background: radial-gradient(circle at top left, rgba(55,65,81,0.9), rgba(17,24,39,0.98));
     color: white;
-    padding: 16px;
-    border-radius: 12px;
+    padding: 16px 18px;
+    border-radius: 14px;
     cursor: pointer;
     text-align: center;
     text-decoration: none;
-    transition: all 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    border: 1px solid rgba(75,85,99,0.9);
+    box-shadow: 0 14px 40px rgba(15,23,42,0.9);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
-.filter-card:hover { background: #4b5563; }
-.filter-card.active { background: #2563eb; }
-.filter-card .count { font-size: 1rem; font-weight: 700; }
-.filter-card .label { font-size: 0.8rem; opacity: 0.9; }
+.filter-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid transparent;
+    pointer-events: none;
+}
+.filter-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 50px rgba(15,23,42,1);
+    border-color: rgba(209,213,219,0.6);
+}
+.filter-card.active {
+    background: radial-gradient(circle at top, rgba(37,99,235,1), rgba(30,64,175,1));
+    border-color: rgba(191,219,254,0.9);
+    box-shadow: 0 20px 60px rgba(30,64,175,0.95);
+}
+.filter-card .count {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+.filter-card .label {
+    font-size: 0.8rem;
+    opacity: 0.95;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.total-order-lists-section {
+    padding: 14px 16px;
+    margin-top: 20px;
+    border-radius: 12px;
+    border: 2px solid #0ea5e9;
+    background: #164e63;
+    margin-bottom: 20px;
+}
+.total-order-lists-section .total-order-lists-header { color: #a5f3fc; margin-bottom: 12px; }
+.total-order-lists-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 24px; height: 24px; padding: 0 8px; margin-left: 10px;
+    border-radius: 9999px; background: #0ea5e9; border: 1px solid #38bdf8;
+    color: #fff; font-size: 0.85rem; font-weight: 700; vertical-align: middle;
+}
+.total-order-lists-section .delivery-flow-section-toggle { margin-left: auto; background: rgba(6,182,212,0.3); border-color: #06b6d4; color: #e0f2fe; }
+.total-order-lists-section .delivery-flow-section-toggle:hover { background: rgba(6,182,212,0.5); }
+.total-order-lists-section.collapsed .total-order-lists-body { display: none !important; }
+#totalOrderListsSection {
+    border-color: #ca8a04;
+    background: linear-gradient(135deg, #422006 0%, #713f12 100%);
+}
+#totalOrderListsSection .total-order-lists-header { color: #fde047; }
+#totalOrderListsSection .total-order-lists-badge { background: #ca8a04; border-color: #eab308; }
+#totalOrderListsSection .delivery-flow-section-toggle { background: rgba(202,138,4,0.3); border-color: #ca8a04; color: #fef08a; }
+#totalOrderListsSection .delivery-flow-section-toggle:hover { background: rgba(202,138,4,0.5); }
+#declinedOrderListsSection {
+    border-color: #dc2626;
+    background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 100%);
+}
+#declinedOrderListsSection .total-order-lists-header { color: #fca5a5; }
+#declinedOrderListsSection .total-order-lists-badge { background: #dc2626; border-color: #f87171; }
+#declinedOrderListsSection .delivery-flow-section-toggle { background: rgba(220,38,38,0.3); border-color: #dc2626; color: #fecaca; }
+#declinedOrderListsSection .delivery-flow-section-toggle:hover { background: rgba(220,38,38,0.5); }
+#deliveredOrderListsSection {
+    border-color: #059669;
+    background: linear-gradient(135deg, #052e16 0%, #14532d 100%);
+}
+#deliveredOrderListsSection .total-order-lists-header { color: #86efac; }
+#deliveredOrderListsSection .total-order-lists-badge { background: #059669; border-color: #34d399; }
+#deliveredOrderListsSection .delivery-flow-section-toggle { background: rgba(5,150,105,0.3); border-color: #059669; color: #d1fae5; }
+#deliveredOrderListsSection .delivery-flow-section-toggle:hover { background: rgba(5,150,105,0.5); }
 .total-actions-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -77,66 +187,36 @@
 .total-action-btn:hover { opacity: 0.92; transform: translateY(-1px); }
 .total-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .total-action-btn.active { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
-.write-status-wrap {
-    display: none;
-    background: #1f2937;
-    border: 1px solid #4b5563;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 20px;
+.total-action-btn.total-active { box-shadow: 0 0 0 2px rgba(255,255,255,0.45); }
+.flow-status-pill {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
-.write-status-wrap.show { display: block; }
-.write-status-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.flow-status-pill.pulse {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 0 0 2px rgba(96,165,250,0.8);
+    background-color: #1d4ed8 !important;
+    color: #f9fafb !important;
 }
-.write-status-input {
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid #4b5563;
-    background: #111827;
-    color: white;
-    font-size: 0.95rem;
+
+#deliveryFlowToggleBtn,
+#consolidatedToggleBtn,
+#userViewToggleBtn {
+    background: linear-gradient(135deg, #eab308 0%, #ca8a04 50%, #a16207 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(234,179,8,0.4);
 }
-.write-status-input:focus {
-    outline: none;
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 2px rgba(139,92,246,0.25);
-}
-.write-status-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-.write-status-save,
-.write-status-clear {
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-.write-status-save {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-}
-.write-status-save:hover { opacity: 0.92; }
-.write-status-clear {
-    background: rgba(255,255,255,0.12);
-    color: #e5e7eb;
-}
-.write-status-clear:hover { background: rgba(255,255,255,0.22); }
-.write-status-hint {
-    margin: 0;
-    font-size: 0.8rem;
-    color: #9ca3af;
+#deliveryFlowToggleBtn:hover,
+#consolidatedToggleBtn:hover,
+#userViewToggleBtn:hover {
+    opacity: 0.96;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(234,179,8,0.5);
 }
 .list-status-chip {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    justify-content: center;
+    padding: 6px 12px;
     border-radius: 9999px;
     margin-left: 10px;
     font-size: 0.75rem;
@@ -145,6 +225,9 @@
     text-transform: uppercase;
     background: rgba(255,255,255,0.1);
     color: #e5e7eb;
+    line-height: 1.2;
+    min-height: 28px;
+    box-sizing: border-box;
 }
 .list-status-chip.has-custom {
     background: #facc15;
@@ -157,21 +240,31 @@
     color: #9ca3af;
 }
 .inline-status-text.has-custom { color: #facc15; }
-.nav-cards { display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+.nav-cards { display: flex; flex-direction: row; flex-wrap: wrap; gap: 14px; margin: 22px 0 28px; }
 .nav-card { flex: 1; min-width: 240px; }
 .nav-card {
-    background: #374151;
+    background: radial-gradient(circle at top left, rgba(55,65,81,0.95), rgba(17,24,39,0.98));
     color: white;
-    padding: 20px;
-    border-radius: 12px;
+    padding: 18px 20px;
+    border-radius: 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     text-decoration: none;
-    transition: background 0.2s;
+    border: 1px solid rgba(75,85,99,0.8);
+    box-shadow: 0 16px 45px rgba(15,23,42,0.95);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
-.nav-card:hover { background: #4b5563; }
-.nav-card .nav-icon { font-size: 1.5rem; }
+.nav-card:hover {
+    background: radial-gradient(circle at top left, rgba(59,130,246,0.18), rgba(17,24,39,0.98));
+    border-color: rgba(191,219,254,0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 22px 60px rgba(30,64,175,0.9);
+}
+.nav-card .nav-icon { font-size: 1.5rem; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
+.nav-card .nav-icon.nav-icon-delivery { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 8px; box-sizing: border-box; }
+.nav-card .nav-icon.nav-icon-user { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 8px; box-sizing: border-box; }
+.nav-card .nav-icon svg { width: 24px; height: 24px; }
 .nav-card .nav-text h3 { margin: 0 0 4px 0; font-size: 1rem; }
 .nav-card .nav-text p { margin: 0; font-size: 0.8rem; opacity: 0.8; }
 .delivery-path-pending-badge {
@@ -188,32 +281,56 @@
     border-radius: 9999px;
 }
 .list-entry {
-    background: #374151;
+    background: radial-gradient(circle at top left, rgba(55,65,81,0.95), rgba(15,23,42,0.98));
     color: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 16px;
+    padding: 20px 20px 18px;
+    border-radius: 16px;
+    margin-bottom: 18px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    border: 1px solid rgba(75,85,99,0.9);
+    box-shadow: 0 18px 55px rgba(15,23,42,1);
+}
+.list-entry-delivered {
+    border-left: 4px solid #059669;
+    background: linear-gradient(135deg, rgba(5,150,105,0.25) 0%, rgba(55,65,81,0.95) 15%, rgba(15,23,42,0.98) 100%);
+    border-color: rgba(16,185,129,0.5);
+    box-shadow: 0 18px 55px rgba(15,23,42,1), 0 0 0 1px rgba(16,185,129,0.2);
+}
+.list-entry-top-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.list-entry-pack-number {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #93c5fd;
+    letter-spacing: 0.02em;
 }
 .list-entry-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     flex-wrap: wrap;
     gap: 12px;
 }
-.list-entry .user-date { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.list-entry .user-date { display: flex; align-items: center; gap: 10px; }
 .list-datetime-admin {
-    display: inline-block;
-    padding: 4px 12px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-    font-weight: 700;
-    font-size: 0.9rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 24px;
+    box-sizing: border-box;
+    background: rgba(20,184,166,0.2);
+    border: 1px solid rgba(94,234,212,0.5);
+    color: #5eead4;
+    font-weight: 600;
+    font-size: 0.7rem;
+    border-radius: 4px;
 }
 .list-entry .content { color: #d1d5db; margin: 8px 0; }
 .list-entry .actions { display: flex; gap: 8px; flex-shrink: 0; }
@@ -253,42 +370,16 @@
 }
 .action-delete { background: #dc2626; color: white; }
 .action-approve { background: #2563eb; color: white; }
+.action-edit { background: #059669; color: white; }
 .action-revert { background: #f59e0b; color: white; }
 .action-comment { background: #059669; color: white; }
 .action-restore { background: #4ade80; color: #064e3b; }
 .no-lists { color: #9ca3af; text-align: center; padding: 40px; }
 .list-entry-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-.ai-generate-all-btn {
-    padding: 10px 18px;
-    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    transition: opacity 0.2s;
-}
+.ai-generate-all-btn { padding: 10px 18px; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; transition: opacity 0.2s; }
 .ai-generate-all-btn:hover { opacity: 0.9; }
 .ai-generate-all-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .list-entry-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.total-action-btn {
-    padding: 12px 16px;
-    color: white;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    transition: opacity 0.2s, transform 0.2s;
-    border: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-}
-.total-action-btn:hover { opacity: 0.92; transform: translateY(-1px); }
-.total-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.total-action-btn.total-active { box-shadow: 0 0 0 2px rgba(255,255,255,0.45); }
 .inline-panel { display: none; margin-bottom: 20px; }
 .inline-panel.show { display: block; }
 .inline-merged-list { background: #374151; padding: 20px; border-radius: 12px; border: 1px solid #4b5563; cursor: pointer; user-select: none; }
@@ -304,9 +395,9 @@
 .inline-panel .pdf-btn:hover { background: #047857; color: white; }
 .inline-user-list { list-style: none; padding: 0; margin: 0; }
 .inline-user-item { margin-bottom: 10px; }
-.inline-user-click { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #374151; border-radius: 10px; cursor: pointer; transition: background 0.2s; }
-.inline-user-click:hover { background: #4b5563; }
-.inline-user-click .name { flex: 1; font-weight: 600; font-size: 0.95rem; color: #34d399; }
+.inline-user-click { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #374151; border-radius: 10px; transition: background 0.2s; }
+.inline-user-click .name { flex: 1; font-weight: 600; font-size: 0.95rem; color: #34d399; cursor: pointer; }
+.inline-user-click .name:hover { text-decoration: underline; }
 .inline-user-badge { min-width: 24px; height: 24px; padding: 0 8px; background: #8b5cf6; color: white; font-size: 0.85rem; font-weight: 700; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center; }
 .inline-user-chevron { font-size: 0.7rem; transition: transform 0.25s; }
 .inline-user-item.open .inline-user-chevron { transform: rotate(180deg); }
@@ -320,325 +411,367 @@
 .inline-list-item .content { color: #d1d5db; white-space: pre-wrap; font-size: 0.85rem; }
 .inline-datetime { display: inline-block; padding: 2px 6px; background: #2563eb; color: white; font-size: 0.75rem; font-weight: 700; border-radius: 6px; }
 .inline-panel-empty { color: #9ca3af; padding: 16px; }
-.inline-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-.inline-panel-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #e5e7eb;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.inline-panel-back {
-    border-radius: 9999px;
-    border: 1px solid #4b5563;
-    background: #111827;
-    color: #e5e7eb;
-    font-size: 0.78rem;
-    padding: 4px 10px;
-    cursor: pointer;
-}
-.inline-panel-back:hover {
-    background: #1f2937;
-}
+.inline-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.inline-panel-title { font-size: 0.95rem; font-weight: 600; color: #e5e7eb; display: inline-flex; align-items: center; gap: 6px; }
+.inline-panel-back { border-radius: 9999px; border: 1px solid #4b5563; background: #111827; color: #e5e7eb; font-size: 0.78rem; padding: 4px 10px; cursor: pointer; }
+.inline-panel-back:hover { background: #1f2937; }
+/* ========== Delivery Flow Set – রঙ ও হায়ারার্কি (নেভিগেশন সহজ) ========== */
 .delivery-flow-panel {
     display: none;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    padding: 18px 18px 16px;
-    border-radius: 14px;
-    background: radial-gradient(circle at top left, rgba(52,211,153,0.15), transparent 55%),
-                radial-gradient(circle at bottom right, rgba(59,130,246,0.18), transparent 55%),
-                #020617;
-    border: 1px solid rgba(148,163,184,0.4);
-    box-shadow: 0 18px 45px rgba(15,23,42,0.7);
+    margin-top: 12px;
+    margin-bottom: 24px;
+    padding: 24px 22px 22px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    border: 2px solid #334155;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 .delivery-flow-panel.show { display: block; }
+/* হেডার – প্যানেলের শীর্ষ, স্পষ্ট আলাদা */
 .delivery-flow-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    margin-bottom: 24px; padding-bottom: 20px; border-bottom: 2px solid #475569;
 }
 .delivery-flow-header-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #e5e7eb;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    margin: 0 0 6px 0; font-size: 1.1rem; font-weight: 800; letter-spacing: 0.04em;
+    color: #e2e8f0; display: inline-flex; align-items: center; gap: 8px;
 }
-.delivery-flow-header-title::before {
-    content: '⏱';
-    font-size: 1rem;
+.delivery-flow-header-title::before { content: '⏱'; font-size: 1.15rem; color: #a78bfa; }
+.delivery-flow-header-desc {
+    margin: 0; font-size: 0.88rem; color: #94a3b8; line-height: 1.5; max-width: 420px;
 }
+/* স্টেপ ব্লক ১ – ফ্লো সেট (অ্যাম্বার একসেন্ট, “এখানে সেট করুন”) */
+.delivery-flow-step-block {
+    margin-bottom: 28px; padding: 20px 18px; border-radius: 14px;
+    background: rgba(30, 41, 59, 0.7); border: 1px solid #334155;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.delivery-flow-step-block:last-of-type { margin-bottom: 0; }
+.delivery-flow-step-flows {
+    border-left: 4px solid #f59e0b;
+}
+.delivery-flow-step-orders {
+    border-left: 4px solid #06b6d4;
+}
+.delivery-flow-step-title {
+    margin: 0 0 6px 0; font-size: 1rem; font-weight: 800; color: #f1f5f9;
+    display: flex; align-items: center; gap: 10px;
+}
+.delivery-flow-step-flows .delivery-flow-step-num {
+    background: #f59e0b; color: #422006; border: 2px solid #fbbf24;
+}
+.delivery-flow-step-orders .delivery-flow-step-num {
+    background: #06b6d4; color: #083344; border: 2px solid #22d3ee;
+}
+.delivery-flow-step-title .delivery-flow-step-num + .delivery-flow-step-toggle { margin-left: 0.5em; }
+.delivery-flow-step-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; min-width: 36px; border-radius: 8px;
+    border: 2px solid rgba(245,158,11,0.7); background: rgba(245,158,11,0.25);
+    color: #fef3c7; font-size: 1rem; cursor: pointer; flex-shrink: 0;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.delivery-flow-step-toggle:hover { background: rgba(245,158,11,0.4); border-color: #f59e0b; }
+.delivery-flow-step-flows.collapsed .delivery-flow-step-body { display: none !important; }
+.delivery-flow-step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    font-size: 0.9rem; font-weight: 800; flex-shrink: 0;
+}
+.delivery-flow-step-desc {
+    margin: 0 0 16px 0; font-size: 0.82rem; color: #94a3b8; line-height: 1.5;
+    padding-left: 38px;
+}
+.delivery-flow-step-orders .delivery-flow-step-desc { margin-bottom: 14px; }
+.delivery-flow-step-flows .time-flow-list { margin-top: 4px; }
+.delivery-flow-step-flows .delivery-flow-actions { margin-top: 16px; padding-top: 14px; border-top-color: #475569; }
+/* বাটন – একশন রঙে আলাদা */
 .delivery-flow-btn {
-    padding: 8px 16px;
-    border-radius: 9999px;
-    border: none;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
-    background: linear-gradient(135deg, #22c55e 0%, #16a34a 40%, #15803d 100%);
-    color: white;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 6px 16px rgba(34,197,94,0.45);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    padding: 10px 20px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 0.9rem; font-weight: 700; letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #fff; display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 2px 10px rgba(99,102,241,0.4);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
 }
-.delivery-flow-btn:hover {
-    opacity: 0.96;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(34,197,94,0.55);
+.delivery-flow-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(99,102,241,0.5); }
+.delivery-flow-actions .delivery-flow-btn {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    box-shadow: 0 2px 10px rgba(16,185,129,0.4);
 }
-.time-flow-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.delivery-flow-actions .delivery-flow-btn:hover { box-shadow: 0 4px 16px rgba(16,185,129,0.5); }
+/* ফ্লো লিস্ট ও খালি স্টেট */
+.time-flow-list { display: flex; flex-direction: column; gap: 14px; min-height: 20px; }
+.time-flow-list-empty {
+    padding: 24px 20px; text-align: center; border-radius: 12px;
+    background: rgba(51, 65, 85, 0.4); border: 2px dashed #475569;
+    color: #94a3b8; font-size: 0.9rem; line-height: 1.5;
 }
+.time-flow-list-empty strong { display: block; margin-bottom: 6px; color: #a78bfa; }
+/* ফ্লো রো – এক একটা ফ্লো, ইন্ডিগো বর্ডার দিয়ে চেনা যায় */
 .time-flow-row {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    column-gap: 16px;
-    row-gap: 10px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(17,24,39,0.98));
-    border: 1px solid rgba(148,163,184,0.5);
-    box-shadow: 0 6px 18px rgba(15,23,42,0.7);
+    column-gap: 18px;
+    row-gap: 12px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid #475569;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     position: relative;
     overflow: hidden;
 }
-.time-flow-row::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border-left: 4px solid #22c55e;
-    opacity: 0.9;
-    pointer-events: none;
-}
-.time-flow-row:hover {
-    border-color: rgba(248,250,252,0.25);
-    transform: translateY(-1px);
-}
+.time-flow-row::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border-left: 4px solid #6366f1; opacity: 1; pointer-events: none; }
+.time-flow-row:hover { border-color: #64748b; transform: translateY(-1px); }
 .time-flow-name {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #bfdbfe;
-    min-width: 80px;
-    z-index: 1;
-    white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.95rem; color: #c7d2fe;
+    min-width: 88px; z-index: 1; white-space: nowrap;
 }
 .time-flow-count {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 9999px;
-    background: rgba(55,65,81,0.95);
-    border: 1px solid rgba(148,163,184,0.9);
-    color: #e5e7eb;
-    font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 24px; height: 24px; padding: 0 7px; border-radius: 9999px;
+    background: #4f46e5; border: 1px solid #6366f1; color: #e0e7ff;
+    font-size: 0.78rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;
 }
-.time-flow-fields {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    justify-content: flex-start;
-    z-index: 1;
-}
-.time-flow-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 140px;
-}
-.time-flow-field label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #9ca3af;
-}
+.time-flow-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: flex-start; z-index: 1; }
+.time-flow-field { display: flex; flex-direction: column; gap: 5px; min-width: 140px; }
+.time-flow-field label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: #94a3b8; font-weight: 600; }
 .time-flow-field input {
-    padding: 8px 10px;
-    border-radius: 9px;
-    border: 1px solid rgba(148,163,184,0.8);
-    background: rgba(15,23,42,0.95);
-    color: #e5e7eb;
-    font-size: 0.86rem;
+    padding: 9px 11px; border-radius: 10px; border: 1px solid #475569; background: #0f172a;
+    color: #e2e8f0; font-size: 0.86rem;
 }
-.time-flow-field input:focus {
-    outline: none;
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 1px rgba(56,189,248,0.7);
-}
-.time-flow-separator {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #9ca3af;
-    margin: 4px 2px 0;
-    align-self: flex-end;
-}
+.time-flow-field input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.3); }
+.time-flow-separator { font-size: 0.85rem; font-weight: 600; color: #64748b; margin: 4px 2px 0; align-self: flex-end; }
 .time-flow-icon-btn {
-    border-radius: 9999px;
-    border: 1px solid rgba(239,68,68,0.6);
-    background: rgba(248,113,113,0.1);
+    border-radius: 10px; border: 1px solid rgba(239,68,68,0.6);
+    background: rgba(239,68,68,0.12); color: #fecaca;
+    cursor: pointer; padding: 6px 12px; font-size: 0.85rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
+}
+.time-flow-icon-btn:hover { background: rgba(239,68,68,0.25); border-color: #f87171; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(239,68,68,0.25); }
+/* Send Order Status – ভায়োলেট টিন্ট, “স্ট্যাটাস জোন” বোঝাতে */
+.time-flow-status-block { min-width: 0; flex: 1 1 360px; max-width: 520px; margin-left: 4px; }
+.time-flow-status-block > label {
+    display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #a78bfa; font-weight: 700; margin-bottom: 6px;
+}
+.time-flow-status-row {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: 10px 14px; border-radius: 12px;
+    background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(129, 140, 248, 0.4);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.time-flow-status-select {
+    flex: 1 1 140px; min-width: 120px; min-height: 36px;
+    padding: 6px 12px 6px 10px; border-radius: 10px;
+    border: 1px solid #475569; background: rgba(15, 23, 42, 0.8);
+    color: #e0e7ff; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.time-flow-status-select:hover { border-color: #6366f1; }
+.time-flow-status-select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.3); }
+.time-flow-status-select option { background: #1e293b; color: #e2e8f0; }
+.flow-status-pill {
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    padding: 6px 12px; min-height: 36px; border-radius: 10px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.flow-status-pill:hover { transform: translateY(-1px); }
+.time-flow-status-create-btn {
+    border: 1px solid rgba(129, 140, 248, 0.6); background: rgba(99, 102, 241, 0.2);
+    color: #c7d2fe;
+}
+.time-flow-status-create-btn:hover { border-color: #818cf8; box-shadow: 0 2px 8px rgba(99,102,241,0.3); }
+.time-flow-status-save-btn {
+    border: 1px solid rgba(52, 211, 153, 0.5); background: rgba(16, 185, 129, 0.15);
+    color: #6ee7b7;
+}
+.time-flow-status-save-btn:hover { border-color: #34d399; box-shadow: 0 2px 8px rgba(16,185,129,0.25); }
+.time-flow-status-delete-btn {
+    border: 1px solid rgba(248, 113, 113, 0.5); background: rgba(239, 68, 68, 0.12);
     color: #fecaca;
-    cursor: pointer;
-    padding: 4px 9px;
-    font-size: 0.8rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
-.time-flow-icon-btn:hover {
-    background: rgba(239,68,68,0.25);
-    border-color: rgba(248,113,113,0.9);
-    transform: translateY(-1px);
+.time-flow-status-delete-btn:hover { border-color: #f87171; box-shadow: 0 2px 8px rgba(239,68,68,0.25); }
+.time-flow-status-input {
+    flex: 1 1 140px; min-width: 100px; padding: 6px 12px !important; border-radius: 10px !important;
+    border: 1px solid #475569 !important; background: rgba(15, 23, 42, 0.8) !important;
+    color: #e0e7ff !important; font-size: 0.85rem !important;
 }
+.time-flow-status-input:focus { outline: none; border-color: #6366f1 !important; box-shadow: 0 0 0 2px rgba(99,102,241,0.3) !important; }
 .delivery-flow-actions {
-    margin-top: 16px;
-    display: none;
-    justify-content: flex-end;
-}
-.delivery-flow-total-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    margin-left: 6px;
-    border-radius: 9999px;
-    background: rgba(30,64,175,0.9);
-    border: 1px solid rgba(129,140,248,0.9);
-    color: #e5e7eb;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-.delivery-flow-sections {
-    margin-top: 18px;
-    border-top: 1px dashed rgba(148,163,184,0.4);
-    padding-top: 14px;
-    display: flex;
-    flex-direction: column;
+    margin-top: 20px; display: none; justify-content: flex-end; align-items: center;
+    padding-top: 16px; border-top: 2px dashed #475569;
     gap: 12px;
 }
-.delivery-flow-section {
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(148,163,184,0.6);
+.delivery-flow-total-badge {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px;
+    padding: 0 6px; margin-left: 8px; border-radius: 9999px;
+    background: #6366f1; border: 1px solid #818cf8; color: #fff; font-size: 0.8rem; font-weight: 700;
 }
+/* সেকশন লিস্ট – স্টেপ ২ এর নিচে, আলাদা এলাকা */
+.delivery-flow-sections {
+    margin-top: 20px; padding-top: 16px; border-top: 2px dashed #475569;
+    display: flex; flex-direction: column; gap: 16px;
+}
+.delivery-flow-section { padding: 14px 16px; border-radius: 12px; border: 2px solid; position: relative; overflow: hidden; }
 .delivery-flow-section-title {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    color: #e5e7eb;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-bottom: 12px; font-size: 1rem; font-weight: 800;
+    min-height: 48px; flex-wrap: wrap;
+}
+.delivery-flow-section-title .flow-num + .delivery-flow-section-status-select { margin-left: 0.5em; }
+.delivery-flow-section-title .delivery-flow-section-status-select + .delivery-flow-section-toggle { margin-left: 0.5em; }
+.delivery-flow-section-status-select {
+    min-width: 100px; max-width: 160px; height: 36px;
+    padding: 4px 10px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.2);
+    color: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    flex-shrink: 0;
+}
+.delivery-flow-section-status-select:hover { border-color: rgba(255,255,255,0.6); }
+.delivery-flow-section-status-select:focus { outline: none; border-color: rgba(255,255,255,0.8); box-shadow: 0 0 0 2px rgba(255,255,255,0.2); }
+.delivery-flow-section-status-select option { background: #1e293b; color: #e2e8f0; }
+.delivery-flow-section-title small { font-size: 0.8rem; font-weight: 600; }
+.delivery-flow-section-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; min-width: 38px; border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.6); color: inherit; cursor: pointer;
+    background: rgba(255,255,255,0.2); font-size: 1rem; margin-left: 0.5em;
+    flex-shrink: 0; line-height: 1; transition: transform 0.2s ease, background 0.2s ease;
+}
+.delivery-flow-section-toggle:hover { background: rgba(255,255,255,0.35); }
+.delivery-flow-section-body-cards { display: flex; flex-direction: column; gap: 10px; transition: opacity 0.2s ease; }
+.delivery-flow-section.collapsed .delivery-flow-section-body-cards { display: none !important; }
+.delivery-flow-cloned-card { margin: 0; }
+/* সেকশন টাইটেলে নম্বর প্রথমে, তারপর সেকশন নাম */
+.delivery-flow-section-title .flow-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; min-width: 38px; border-radius: 50%;
+    font-size: 1.35rem; font-weight: 800; line-height: 1;
+    margin-left: 0; margin-right: 0.5em; flex-shrink: 0; /* ২ স্পেস পরিমাণ দূরত্ব ড্রপডাউনের আগে */
+}
+/* Flow 1 – সেকশন রঙ (কার্ডে রঙ নেই) */
+.delivery-flow-section:nth-child(1) { background: #14532d; border-color: #22c55e; }
+.delivery-flow-section:nth-child(1) .delivery-flow-section-title { color: #bbf7d0; }
+.delivery-flow-section:nth-child(1) .delivery-flow-section-title .flow-num { background: #22c55e; color: #052e16; }
+.delivery-flow-section:nth-child(1) .delivery-flow-section-title small { color: #86efac; }
+/* Flow 2 – টিল */
+.delivery-flow-section:nth-child(2) { background: #0f4d47; border-color: #14b8a6; }
+.delivery-flow-section:nth-child(2) .delivery-flow-section-title { color: #99f6e4; }
+.delivery-flow-section:nth-child(2) .delivery-flow-section-title .flow-num { background: #14b8a6; color: #042f2e; }
+.delivery-flow-section:nth-child(2) .delivery-flow-section-title small { color: #5eead4; }
+/* Flow 3 – অ্যাম্বার/কমলা */
+.delivery-flow-section:nth-child(3) { background: #78350f; border-color: #f59e0b; }
+.delivery-flow-section:nth-child(3) .delivery-flow-section-title { color: #fef3c7; }
+.delivery-flow-section:nth-child(3) .delivery-flow-section-title .flow-num { background: #f59e0b; color: #451a03; }
+.delivery-flow-section:nth-child(3) .delivery-flow-section-title small { color: #fcd34d; }
+/* Flow 4 – বেগুনি */
+.delivery-flow-section:nth-child(4) { background: #4c1d95; border-color: #a78bfa; }
+.delivery-flow-section:nth-child(4) .delivery-flow-section-title { color: #e9d5ff; }
+.delivery-flow-section:nth-child(4) .delivery-flow-section-title .flow-num { background: #a78bfa; color: #2e1065; }
+.delivery-flow-section:nth-child(4) .delivery-flow-section-title small { color: #c4b5fd; }
+/* Flow 5+ – সায়ান */
+.delivery-flow-section:nth-child(n+5) { background: #164e63; border-color: #06b6d4; }
+.delivery-flow-section:nth-child(n+5) .delivery-flow-section-title { color: #a5f3fc; }
+.delivery-flow-section:nth-child(n+5) .delivery-flow-section-title .flow-num { background: #06b6d4; color: #083344; }
+.delivery-flow-section:nth-child(n+5) .delivery-flow-section-title small { color: #67e8f9; }
+/* Delivery Flow Set – ভেতরের কার্ড সেকশন রঙ অনুযায়ী */
+.delivery-flow-panel .delivery-flow-cloned-card {
+    background: radial-gradient(circle at top left, rgba(55,65,81,0.95), rgba(15,23,42,0.98)) !important;
+    border: 1px solid rgba(148,163,184,0.5) !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7) !important;
+}
+.delivery-flow-section:nth-child(1) .delivery-flow-cloned-card {
+    border-left: 4px solid #22c55e !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7), 0 0 0 1px rgba(34,197,94,0.25) !important;
+}
+.delivery-flow-section:nth-child(1) .delivery-flow-cloned-card .list-entry-pack-number { color: #86efac !important; }
+.delivery-flow-section:nth-child(1) .delivery-flow-cloned-card .list-datetime-admin { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; border-color: #22c55e !important; color: #fff !important; }
+.delivery-flow-section:nth-child(1) .delivery-flow-cloned-card .list-username { color: #86efac !important; }
+.delivery-flow-section:nth-child(2) .delivery-flow-cloned-card {
+    border-left: 4px solid #14b8a6 !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7), 0 0 0 1px rgba(20,184,166,0.25) !important;
+}
+.delivery-flow-section:nth-child(2) .delivery-flow-cloned-card .list-entry-pack-number { color: #5eead4 !important; }
+.delivery-flow-section:nth-child(2) .delivery-flow-cloned-card .list-datetime-admin { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important; border-color: #14b8a6 !important; color: #fff !important; }
+.delivery-flow-section:nth-child(2) .delivery-flow-cloned-card .list-username { color: #5eead4 !important; }
+.delivery-flow-section:nth-child(3) .delivery-flow-cloned-card {
+    border-left: 4px solid #f59e0b !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7), 0 0 0 1px rgba(245,158,11,0.25) !important;
+}
+.delivery-flow-section:nth-child(3) .delivery-flow-cloned-card .list-entry-pack-number { color: #fcd34d !important; }
+.delivery-flow-section:nth-child(3) .delivery-flow-cloned-card .list-datetime-admin { background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important; border-color: #f59e0b !important; color: #fff !important; }
+.delivery-flow-section:nth-child(3) .delivery-flow-cloned-card .list-username { color: #fcd34d !important; }
+.delivery-flow-section:nth-child(4) .delivery-flow-cloned-card {
+    border-left: 4px solid #a78bfa !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7), 0 0 0 1px rgba(167,139,250,0.25) !important;
+}
+.delivery-flow-section:nth-child(4) .delivery-flow-cloned-card .list-entry-pack-number { color: #c4b5fd !important; }
+.delivery-flow-section:nth-child(4) .delivery-flow-cloned-card .list-datetime-admin { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important; border-color: #a78bfa !important; color: #fff !important; }
+.delivery-flow-section:nth-child(4) .delivery-flow-cloned-card .list-username { color: #c4b5fd !important; }
+.delivery-flow-section:nth-child(n+5) .delivery-flow-cloned-card {
+    border-left: 4px solid #06b6d4 !important;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.7), 0 0 0 1px rgba(6,182,212,0.25) !important;
+}
+.delivery-flow-section:nth-child(n+5) .delivery-flow-cloned-card .list-entry-pack-number { color: #67e8f9 !important; }
+.delivery-flow-section:nth-child(n+5) .delivery-flow-cloned-card .list-datetime-admin { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%) !important; border-color: #06b6d4 !important; color: #fff !important; }
+.delivery-flow-section:nth-child(n+5) .delivery-flow-cloned-card .list-username { color: #67e8f9 !important; }
+.delivery-flow-panel .delivery-flow-cloned-card .list-section h4 { color: #9ca3af !important; }
+.delivery-flow-panel .delivery-flow-cloned-card .list-section { background: transparent !important; border: none !important; padding: 0 !important; }
+.delivery-flow-panel .delivery-flow-cloned-card .list-section-content { background: transparent !important; color: #d1d5db !important; }
+.delivery-flow-panel .delivery-flow-cloned-card .list-entry .content { color: #d1d5db !important; }
+.time-flow-label-badge,
+.time-flow-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    min-height: 24px;
+    box-sizing: border-box;
+    line-height: 1;
+}
+.time-flow-label-badge {
+    margin-left: 8px;
+    padding: 0 8px;
+    border-radius: 4px;
+    background: rgba(20,184,166,0.2);
+    border: 1px solid rgba(94,234,212,0.5);
+    color: #5eead4;
+    font-size: 0.7rem;
     font-weight: 600;
 }
-.delivery-flow-section-title small {
-    font-size: 0.78rem;
-    color: #9ca3af;
-    font-weight: 500;
+.time-flow-status-badge {
+    margin-left: 6px;
+    padding: 0 10px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(20,184,166,0.3) 0%, rgba(45,212,191,0.25) 100%);
+    border: 1px solid rgba(94,234,212,0.55);
+    color: #99f6e4;
+    font-size: 0.72rem;
+    font-weight: 600;
 }
-.delivery-flow-section-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: block;
-}
-.delivery-flow-section-item {
-    margin-bottom: 10px;
-}
-.delivery-flow-section-body-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.delivery-flow-cloned-card {
-    margin: 0;
-}
-.flow-consolidated-selector {
-    display: none;
-    margin-bottom: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.flow-consolidated-option {
-    border-radius: 9999px;
-    border: 1px solid rgba(55,65,81,0.9);
-    background: rgba(31,41,55,0.9);
-    color: #e5e7eb;
-    font-size: 0.78rem;
-    padding: 4px 10px;
-    cursor: pointer;
-}
-.flow-consolidated-option.active {
-    border-color: rgba(37,99,235,0.9);
-    background: rgba(37,99,235,0.2);
-}
-@media (max-width: 600px) {
-    .time-flow-row {
-        align-items: flex-start;
-    }
-    .time-flow-name {
-        min-width: 100%;
-    }
-}
+.flow-consolidated-selector { display: none; margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.flow-consolidated-option { border-radius: 9999px; border: 1px solid rgba(55,65,81,0.9); background: rgba(31,41,55,0.9); color: #e5e7eb; font-size: 0.78rem; padding: 4px 10px; cursor: pointer; }
+.flow-consolidated-option.active { border-color: rgba(37,99,235,0.9); background: rgba(37,99,235,0.2); }
+@media (max-width: 600px) { .time-flow-row { align-items: flex-start; } .time-flow-name { min-width: 100%; } }
 .notice-board textarea { width: 100%; padding: 8px 12px; border-radius: 8px; border: none; color: #1f2937; font-family: inherit; resize: vertical; min-height: 36px; max-height: 60px; font-size: 0.9rem; }
 @media (max-width: 768px) {
     .admin-theme .container { padding: 0 16px; max-width: 100%; }
     .admin-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-    .filter-cards { flex-wrap: wrap; gap: 8px; }
-    .filter-card { padding: 6px 12px; }
+    .filter-cards { grid-template-columns: 1fr; gap: 8px; }
+    .filter-card { padding: 10px 12px; }
     .filter-card .count { font-size: 0.95rem; }
-    .nav-card { padding: 16px; }
+    .nav-cards { flex-direction: column; }
+    .nav-card { padding: 16px; width: 100%; }
     .list-entry-actions { flex-direction: column; align-items: stretch; }
     .list-entry-actions .btn, .list-entry-actions a { text-align: center; }
 }
-@media (max-width: 700px) {
-    .list-entry-sections { grid-template-columns: 1fr; }
-    .total-actions-row { grid-template-columns: 1fr; }
-}
-@media (max-width: 600px) {
-    .list-entry { gap: 12px; padding: 16px; }
-    .list-entry-header { flex-direction: column; }
-    .list-entry-header-row { flex-direction: column; align-items: stretch; }
-    .list-entry .actions { flex-wrap: wrap; }
-    .notice-board { padding: 14px 16px !important; }
-    .notice-board textarea { min-height: 70px; }
-}
-@media (max-width: 400px) {
-    .admin-brand h1 { font-size: 1rem; }
-    .admin-brand .sub { font-size: 0.8rem; }
-    .filter-card .count { font-size: 0.9rem; }
-}
+@media (max-width: 700px) { .list-entry-sections { grid-template-columns: 1fr; } .total-actions-row { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .list-entry { gap: 12px; padding: 16px; } .list-entry-header { flex-direction: column; } .list-entry-header-row { flex-direction: column; align-items: stretch; } .list-entry .actions { flex-wrap: wrap; } .notice-board { padding: 14px 16px !important; } .notice-board textarea { min-height: 70px; } }
+@media (max-width: 400px) { .admin-brand h1 { font-size: 1rem; } .admin-brand .sub { font-size: 0.8rem; } .filter-card .count { font-size: 0.9rem; } }
 {% endblock %}
 {% block content %}
 <div class="admin-theme">
@@ -671,26 +804,28 @@
     <div class="nav-cards">
         <a href="{% url 'user_directory' %}" class="nav-card">
             <div style="display: flex; align-items: center; gap: 16px;">
-                <span class="nav-icon">👥</span>
+                <span class="nav-icon nav-icon-delivery" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                </span>
                 <div class="nav-text">
-                    <h3>Delivery Path setup</h3>
-                    <p>ইউজার প্রোফাইল ও ডেলিভারি পাথ</p>
+                    <h3>Delivery Path Setup & Delivery Funnel</h3>
+                    <p>অর্ডার ডেলিভারির জন্য রাস্তা সেট করুন</p>
                 </div>
                 {% if delivery_path_pending_count %}
                 <span class="delivery-path-pending-badge">{{ delivery_path_pending_count }}</span>
                 {% endif %}
             </div>
-            <span>→</span>
         </a>
         <a href="{% url 'user_profiles' %}" class="nav-card">
             <div style="display: flex; align-items: center; gap: 16px;">
-                <span class="nav-icon">📋</span>
+                <span class="nav-icon nav-icon-user" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
                 <div class="nav-text">
                     <h3>User Profiles</h3>
-                    <p>Username, Full Name, Address, Phone ও প্রোফাইল মুছুন</p>
+                    <p>ইউজার প্রোফাইল গুলো ম্যানেজ করুন</p>
                 </div>
             </div>
-            <span>→</span>
         </a>
     </div>
 
@@ -756,67 +891,74 @@
     </div>
     {% endif %}
     <div id="listCardsSection">
-    <div class="filter-cards" style="margin-bottom: 12px;">
-        <a href="?filter=delivered" class="filter-card {% if filter_status == 'delivered' %}active{% endif %}" title="Delivered orders">
-            <div class="count">{{ delivered_count }}</div>
-            <div class="label">Delivered</div>
-        </a>
-        <a href="?filter=declined" class="filter-card {% if filter_status == 'declined' %}active{% endif %}" title="Declined orders">
-            <div class="count">{{ declined_count }}</div>
-            <div class="label">Declined</div>
-        </a>
-        <a href="?filter=late_transferred" class="filter-card {% if filter_status == 'late_transferred' %}active{% endif %}" title="Late Transfered orders">
-            <div class="count">{{ late_transferred_count }}</div>
-            <div class="label">Late Transfered Order</div>
-        </a>
-    </div>
-    <div class="filter-cards" style="margin-bottom: 20px;">
-        <a href="?filter=total" class="filter-card {% if filter_status == 'total' %}active{% endif %}" title="All orders">
-            <div class="count">{{ total_count }}</div>
-            <div class="label">Total Order Received</div>
-        </a>
-    </div>
-
     {% if filter_status == 'total' %}
     <div class="total-actions-row">
-        <button type="button" class="total-action-btn" id="writeStatusToggleBtn">✏️ Write Status</button>
-        <button type="button" class="total-action-btn" id="consolidatedToggleBtn">📋 Consolidated List</button>
-        <button type="button" class="total-action-btn" id="userViewToggleBtn">👤 User View</button>
-        <button type="button" class="total-action-btn" id="aiGenerateAllBtn">✨ সব লিস্ট AI দিয়ে যাচাই</button>
         <button type="button" class="total-action-btn" id="deliveryFlowToggleBtn">
             Delivery Flow Set
             <span class="delivery-flow-total-badge" id="deliveryFlowTotalBadge">0</span>
         </button>
-    </div>
-    <div class="write-status-wrap" id="writeStatusWrap">
-        <form id="writeStatusForm" class="write-status-form" method="post" action="{% url 'write_list_status' %}">
-            {% csrf_token %}
-            <input type="text" id="writeStatusInput" name="status_text" class="write-status-input" placeholder="নতুন স্ট্যাটাস লিখুন (যেমনঃ Processing)" value="{{ status_override }}">
-            <div class="write-status-actions">
-                <button type="submit" class="write-status-save">Save</button>
-                <button type="button" class="write-status-clear" id="writeStatusClearBtn">Clear</button>
-            </div>
-            <p class="write-status-hint">এই স্ট্যাটাস টেক্সট সব Total Order Received লিস্টে দেখাবে। খালি রেখে Save চাপলে ডিফল্ট স্ট্যাটাস ফিরে আসবে।</p>
-        </form>
+        <button type="button" class="total-action-btn" id="consolidatedToggleBtn">📋 Consolidated List</button>
+        <button type="button" class="total-action-btn" id="userViewToggleBtn">👤 User View</button>
     </div>
     <div class="delivery-flow-panel" id="deliveryFlowPanel" data-save-url="{% url 'save_delivery_flow' %}">
         <div class="delivery-flow-header">
-            <h4 class="delivery-flow-header-title">Delivery Flow Set</h4>
-            <button type="button" class="delivery-flow-btn" id="createTimeFlowBtn">Create Time Flow</button>
+            <div>
+                <h4 class="delivery-flow-header-title">Delivery Flow Set</h4>
+            </div>
+            <button type="button" class="delivery-flow-btn" id="createTimeFlowBtn">Create New Flow</button>
         </div>
-        <div class="time-flow-list" id="timeFlowList">
-            {# Rows will be added here dynamically #}
-        </div>
-        <div class="delivery-flow-actions">
-            <button type="button" class="delivery-flow-btn" id="saveTimeFlowBtn">Update</button>
-        </div>
-        <div class="delivery-flow-sections" id="deliveryFlowSections"></div>
+        <section class="delivery-flow-step-block delivery-flow-step-flows" id="flowSetStepBlock">
+            <h5 class="delivery-flow-step-title">
+                <span class="delivery-flow-step-num">১</span> ফ্লো সেট করুন
+                <button type="button" class="delivery-flow-step-toggle" id="flowSetStepToggle" aria-label="খোলা/বন্ধ" title="খোলা/বন্ধ">⏸</button>
+            </h5>
+            <div class="delivery-flow-step-body">
+                <p class="delivery-flow-step-desc">প্রতিটি ফ্লোতে সময় রেঞ্জ ও লেবেল দিন; Send Order Status বেছে নিন। শেষে Update ক্লিক করে সেভ করুন।</p>
+                <div class="time-flow-list" id="timeFlowList">
+                    <div class="time-flow-list-empty" id="timeFlowListEmpty">কোনো ফ্লো নেই। <strong>উপরের "Create New Flow" বাটন ক্লিক করুন।</strong></div>
+                </div>
+                <div class="delivery-flow-actions">
+                    <button type="button" class="delivery-flow-btn" id="saveTimeFlowBtn">💾 Update / সেভ করুন</button>
+                </div>
+            </div>
+        </section>
+        <section class="delivery-flow-step-block delivery-flow-step-orders">
+            <h5 class="delivery-flow-step-title"><span class="delivery-flow-step-num">২</span> অর্ডার ফ্লো অনুযায়ী দেখুন</h5>
+            <div class="delivery-flow-sections" id="deliveryFlowSections"></div>
+        </section>
     </div>
     {% endif %}
 
+    {% if filter_status == 'total' %}
+    <div class="total-order-lists-section" id="totalOrderListsSection">
+        <div class="total-order-lists-header delivery-flow-section-title">
+            <span class="total-order-lists-title">TOTAL ORDER RECEIVED <span class="total-order-lists-badge" id="totalOrderListsBadge">{{ total_count }}</span></span>
+            <button type="button" class="delivery-flow-section-toggle" id="totalOrderListsToggle" aria-label="খোলা/বন্ধ" title="খোলা/বন্ধ">⏸</button>
+        </div>
+        <div class="total-order-lists-body" id="totalOrderListsBody">
+    {% endif %}
+    {% if filter_status == 'delivered' %}
+    <div class="filter-order-lists-section total-order-lists-section" id="deliveredOrderListsSection">
+        <div class="total-order-lists-header delivery-flow-section-title">
+            <span class="total-order-lists-title">DELIVERED <span class="total-order-lists-badge" id="deliveredOrderListsBadge">{{ delivered_count }}</span></span>
+            <button type="button" class="delivery-flow-section-toggle" id="deliveredOrderListsToggle" aria-label="খোলা/বন্ধ" title="খোলা/বন্ধ">⏸</button>
+        </div>
+        <div class="total-order-lists-body" id="deliveredOrderListsBody">
+    {% endif %}
+    {% if filter_status == 'declined' %}
+    <div class="filter-order-lists-section total-order-lists-section" id="declinedOrderListsSection">
+        <div class="total-order-lists-header delivery-flow-section-title">
+            <span class="total-order-lists-title">CANCELLED <span class="total-order-lists-badge" id="declinedOrderListsBadge">{{ declined_count }}</span></span>
+            <button type="button" class="delivery-flow-section-toggle" id="declinedOrderListsToggle" aria-label="খোলা/বন্ধ" title="খোলা/বন্ধ">⏸</button>
+        </div>
+        <div class="total-order-lists-body" id="declinedOrderListsBody">
+    {% endif %}
     {% if lists %}
     {% for list in lists %}
-    <div class="list-entry" data-list-pk="{{ list.pk }}" {% if list.created_at %}data-created="{{ list.created_at|date:'c' }}"{% endif %}>
+    <div class="list-entry {% if list.status == 'delivered' %}list-entry-delivered{% endif %}" data-list-pk="{{ list.pk }}" data-status="{{ list.status }}" {% if list.created_at %}data-created="{{ list.created_at|date:'c' }}"{% endif %}>
+        <div class="list-entry-top-row">
+            <div class="list-entry-pack-number">{{ list.list_id }} <span class="list-datetime-admin">{{ list.created_at|date_card }}</span></div>
+        </div>
         <div class="list-entry-header">
             <div style="flex: 1;">
                 <div class="user-date">
@@ -827,17 +969,13 @@
                         {% endif %}
                     </a>
                     <a href="{% url 'user_profile_detail' list.family_id %}" class="list-username" title="View profile">{{ list.user_display_name }}</a>
-                    <span class="list-meta"><span class="list-datetime-admin">{{ list.created_at|date_card }}</span> এ তৈরি</span>
-                    <span class="list-status-chip {% if list.note %}has-custom{% endif %}" data-default="{{ list.get_status_display }}">{{ list.note|default:list.get_status_display }}</span>
                 </div>
             </div>
             <div class="actions">
-                {% if list.status == 'pending' %}
-                <a href="{% url 'approve_list' list.pk %}" class="action-icon action-approve" title="Approve">👍</a>
-                {% elif list.status == 'approved' %}
-                <a href="{% url 'revert_to_pending' list.pk %}" class="action-icon action-revert" title="Revert to pending">↩️</a>
-                <a href="#" class="action-icon action-comment open-comment-modal" title="Comment" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
-                {% elif list.status == 'declined' %}
+                {% if filter_status == 'total' or filter_status == 'declined' %}
+                <a href="{% url 'admin_edit_list' list.pk %}?filter={{ filter_status }}" class="action-icon action-edit" title="Edit">✏️</a>
+                {% endif %}
+                {% if list.status == 'declined' %}
                 <a href="{% url 'restore_list' list.pk %}" class="action-icon action-restore" title="Restore to Total">♻️</a>
                 {% endif %}
                 <a href="{% url 'admin_delete_list' list.pk %}" class="action-icon action-delete" title="Delete" onclick="return confirm('লিস্ট মুছবেন?');">🗑️</a>
@@ -859,10 +997,114 @@
     {% else %}
     <div class="no-lists">কোনো লিস্ট নেই।</div>
     {% endif %}
+    {% if filter_status == 'total' %}
+        </div>
     </div>
+    <div class="filter-order-lists-section total-order-lists-section" id="declinedOrderListsSection">
+        <div class="total-order-lists-header delivery-flow-section-title">
+            <span class="total-order-lists-title">CANCELLED <span class="total-order-lists-badge" id="declinedOrderListsBadge">{{ declined_count }}</span></span>
+            <button type="button" class="delivery-flow-section-toggle" id="declinedOrderListsToggle" aria-label="খোলা/বন্ধ" title="খোলা/বন্ধ">⏸</button>
+        </div>
+        <div class="total-order-lists-body" id="declinedOrderListsBody">
+        {% for list in declined_lists %}
+        <div class="list-entry" data-list-pk="{{ list.pk }}" data-status="declined" {% if list.created_at %}data-created="{{ list.created_at|date:'c' }}"{% endif %}>
+            <div class="list-entry-top-row">
+                <div class="list-entry-pack-number">{{ list.list_id }} <span class="list-datetime-admin">{{ list.created_at|date_card }}</span></div>
+            </div>
+            <div class="list-entry-header">
+                <div style="flex: 1;">
+                    <div class="user-date">
+                        <a href="{% url 'user_profile_detail' list.family_id %}" class="list-avatar-link" title="View profile">{% if list.user_avatar_url %}
+                            <img src="{{ list.user_avatar_url }}" alt="" class="list-user-avatar">
+                            {% else %}
+                            <span class="list-user-avatar-placeholder">👤</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'user_profile_detail' list.family_id %}" class="list-username" title="View profile">{{ list.user_display_name }}</a>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a href="{% url 'admin_edit_list' list.pk %}?filter=total" class="action-icon action-edit" title="Edit">✏️</a>
+                    <a href="{% url 'restore_list' list.pk %}" class="action-icon action-restore" title="Restore to Total">♻️</a>
+                    <a href="{% url 'admin_delete_list' list.pk %}" class="action-icon action-delete" title="Delete" onclick="return confirm('লিস্ট মুছবেন?');">🗑️</a>
+                </div>
+            </div>
+            <div class="list-entry-sections">
+                <div class="list-section" title="Original list (as submitted)">
+                    <h4>মূল লিস্ট (যেমন আছে)</h4>
+                    <div class="list-section-content">{{ list.content|default:"-"|linebreaksbr }}</div>
+                </div>
+                <div class="list-section" title="AI list (click generate to regenerate)">
+                    <h4>AI লিস্ট (পুনরায় জেনারেট)</h4>
+                    <div class="list-section-content ai-content" id="ai-content-{{ list.pk }}">{% if list.ai_content %}{{ list.ai_content|linebreaksbr }}{% else %}— জেনারেট বাটনে ক্লিক করুন{% endif %}</div>
+                    <button type="button" class="ai-generate-btn" data-list-pk="{{ list.pk }}" data-ai-url="{% url 'ai_generate_list' list.pk %}" title="Generate with AI">✨ AI দিয়ে জেনারেট</button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-lists">কোনো লিস্ট নেই।</div>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="filter-order-lists-section total-order-lists-section" id="deliveredOrderListsSection">
+        <div class="total-order-lists-header delivery-flow-section-title">
+            <span class="total-order-lists-title">DELIVERED <span class="total-order-lists-badge" id="deliveredOrderListsBadge">{{ delivered_count }}</span></span>
+            <button type="button" class="delivery-flow-section-toggle" id="deliveredOrderListsToggle" aria-label="খোলা/বন্ধ" title="খোলা/বন্ধ">⏸</button>
+        </div>
+        <div class="total-order-lists-body" id="deliveredOrderListsBody">
+        {% for list in delivered_lists %}
+        <div class="list-entry list-entry-delivered" data-list-pk="{{ list.pk }}" data-status="delivered" {% if list.created_at %}data-created="{{ list.created_at|date:'c' }}"{% endif %}>
+            <div class="list-entry-top-row">
+                <div class="list-entry-pack-number">{{ list.list_id }} <span class="list-datetime-admin">{{ list.created_at|date_card }}</span></div>
+            </div>
+            <div class="list-entry-header">
+                <div style="flex: 1;">
+                    <div class="user-date">
+                        <a href="{% url 'user_profile_detail' list.family_id %}" class="list-avatar-link" title="View profile">{% if list.user_avatar_url %}
+                            <img src="{{ list.user_avatar_url }}" alt="" class="list-user-avatar">
+                            {% else %}
+                            <span class="list-user-avatar-placeholder">👤</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'user_profile_detail' list.family_id %}" class="list-username" title="View profile">{{ list.user_display_name }}</a>
+                    </div>
+                </div>
+                <div class="actions">
+                    <a href="{% url 'admin_edit_list' list.pk %}?filter=total" class="action-icon action-edit" title="Edit">✏️</a>
+                    <a href="{% url 'admin_delete_list' list.pk %}" class="action-icon action-delete" title="Delete" onclick="return confirm('লিস্ট মুছবেন?');">🗑️</a>
+                </div>
+            </div>
+            <div class="list-entry-sections">
+                <div class="list-section" title="Original list (as submitted)">
+                    <h4>মূল লিস্ট (যেমন আছে)</h4>
+                    <div class="list-section-content">{{ list.content|default:"-"|linebreaksbr }}</div>
+                </div>
+                <div class="list-section" title="AI list (click generate to regenerate)">
+                    <h4>AI লিস্ট (পুনরায় জেনারেট)</h4>
+                    <div class="list-section-content ai-content" id="ai-content-{{ list.pk }}">{% if list.ai_content %}{{ list.ai_content|linebreaksbr }}{% else %}— জেনারেট বাটনে ক্লিক করুন{% endif %}</div>
+                    <button type="button" class="ai-generate-btn" data-list-pk="{{ list.pk }}" data-ai-url="{% url 'ai_generate_list' list.pk %}" title="Generate with AI">✨ AI দিয়ে জেনারেট</button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-lists">কোনো লিস্ট নেই।</div>
+        {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% if filter_status == 'delivered' %}
+        </div>
+    </div>
+    {% endif %}
+    {% if filter_status == 'declined' %}
+        </div>
+    </div>
+    {% endif %}
+</div>
 </div>
 </div>
 {{ delivery_flows|json_script:"delivery-flow-json" }}
+{{ send_status_presets|json_script:"send-status-presets-json" }}
 
 <style>
 .list-avatar-link { display: inline-flex; align-items: center; flex-shrink: 0; }
@@ -873,6 +1115,8 @@
 .list-meta { font-size: 0.85rem; color: #9ca3af; }
 .list-status-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; margin-left: 8px; }
 .list-status-approved { background: #2563eb; color: white; }
+.list-status-chip { display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; line-height: 1.2; min-height: 28px; box-sizing: border-box; }
+.list-status-chip-delivered { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; box-shadow: 0 2px 4px rgba(5,150,105,0.3); }
 .admin-list-content { display: block; color: #d1d5db; margin-top: 8px; white-space: pre-wrap; font-size: 0.95rem; }
 .comment-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
 .comment-modal-overlay.active { display: flex; }
@@ -913,6 +1157,85 @@
     });
 })();
 
+// Delivered / Declined filter active thakle click = show/hide (toggle)
+(function() {
+    function attachToggle(cardId, hideInitially) {
+        var card = document.getElementById(cardId);
+        if (!card) return;
+        // Shudhu oi filter already active thakle toggle korbo
+        if (!card.classList.contains('active')) return;
+
+        var targets = Array.prototype.slice.call(
+            document.querySelectorAll('.list-entry, .no-lists')
+        );
+        if (!targets.length) return;
+
+        var visible = !hideInitially;
+
+        // Jodi hideInitially true hoy (Total er jonno) -> page load e list gula off thakbe
+        if (hideInitially) {
+            targets.forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+
+        card.addEventListener('click', function(e) {
+            // Same page e thakbo, shudhu show/hide korbo
+            e.preventDefault();
+            visible = !visible;
+            targets.forEach(function(el) {
+                el.style.display = visible ? '' : 'none';
+            });
+        });
+    }
+
+})();
+
+(function() {
+    var TOTAL_ORDER_LISTS_STORAGE_KEY = 'eayShop_totalOrderLists_collapsed';
+    var totalOrderListsToggle = document.getElementById('totalOrderListsToggle');
+    var totalOrderListsSection = document.getElementById('totalOrderListsSection');
+    if (!totalOrderListsToggle || !totalOrderListsSection) return;
+    try {
+        if (localStorage.getItem(TOTAL_ORDER_LISTS_STORAGE_KEY) === 'true') {
+            totalOrderListsSection.classList.add('collapsed');
+            totalOrderListsToggle.innerHTML = '▶';
+        }
+    } catch (e) {}
+    totalOrderListsToggle.addEventListener('click', function() {
+        totalOrderListsSection.classList.toggle('collapsed');
+        var isCollapsed = totalOrderListsSection.classList.contains('collapsed');
+        totalOrderListsToggle.innerHTML = isCollapsed ? '▶' : '⏸';
+        try {
+            localStorage.setItem(TOTAL_ORDER_LISTS_STORAGE_KEY, isCollapsed ? 'true' : 'false');
+        } catch (e) {}
+    });
+})();
+
+(function() {
+    function initFilterListsToggle(sectionId, toggleId, storageKey) {
+        var section = document.getElementById(sectionId);
+        var toggle = document.getElementById(toggleId);
+        if (!section || !toggle) return;
+        try {
+            if (localStorage.getItem(storageKey) === 'true') {
+                section.classList.add('collapsed');
+                toggle.innerHTML = '▶';
+            }
+        } catch (e) {}
+        toggle.addEventListener('click', function() {
+            section.classList.toggle('collapsed');
+            var isCollapsed = section.classList.contains('collapsed');
+            toggle.innerHTML = isCollapsed ? '▶' : '⏸';
+            try { localStorage.setItem(storageKey, isCollapsed ? 'true' : 'false'); } catch (e) {}
+        });
+    }
+    initFilterListsToggle('deliveredOrderListsSection', 'deliveredOrderListsToggle', 'eayShop_deliveredOrderLists_collapsed');
+    initFilterListsToggle('declinedOrderListsSection', 'declinedOrderListsToggle', 'eayShop_declinedOrderLists_collapsed');
+})();
+
+// Send Order Status UI removed
+
 (function() {
     var toggleBtn = document.getElementById('deliveryFlowToggleBtn');
     var panel = document.getElementById('deliveryFlowPanel');
@@ -934,11 +1257,82 @@
     if (!toggleBtn || !panel || !createBtn || !listEl || !saveBtn || !sectionsEl) return;
 
     var flowCount = 0;
+    var COLLAPSED_STORAGE_KEY = 'eayShop_deliveryFlow_collapsed';
+
+    function getSavedCollapsedState() {
+        try {
+            var raw = localStorage.getItem(COLLAPSED_STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return {};
+    }
+
+    function saveCollapsedState() {
+        var sections = sectionsEl.querySelectorAll('.delivery-flow-section');
+        var state = {};
+        for (var i = 0; i < sections.length; i++) {
+            state[i] = sections[i].classList.contains('collapsed');
+        }
+        try {
+            localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {}
+    }
+
+    function getStatusPresets() {
+        try {
+            var script = document.getElementById('send-status-presets-json');
+            if (!script || !script.textContent) return [];
+            var vals = JSON.parse(script.textContent);
+            return Array.isArray(vals) ? vals : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveStatusPresetsFromDOM() {
+        try {
+            var all = new Set();
+            var selects = listEl.querySelectorAll('.time-flow-status-select');
+            selects.forEach(function(sel) {
+                Array.prototype.slice.call(sel.options).forEach(function(opt) {
+                    var v = (opt.value || '').trim();
+                    if (v) all.add(v);
+                });
+            });
+            var listArr = Array.from(all);
+            var csrfToken = (document.querySelector('input[name="csrfmiddlewaretoken"]') || {}).value || '';
+            var formData = new FormData();
+            formData.append('presets', JSON.stringify(listArr));
+            fetch("{% url 'save_send_status_presets' %}", {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData,
+            }).then(function(resp) {
+                return resp.ok ? resp.json() : null;
+            }).then(function(data) {
+                if (!data || !data.success) return;
+                // update in-page JSON so newly created rows also see latest presets
+                var script = document.getElementById('send-status-presets-json');
+                if (script) {
+                    script.textContent = JSON.stringify(listArr);
+                }
+            }).catch(function() {
+                // ignore network errors for now
+            });
+        } catch (e) {
+            // ignore errors
+        }
+    }
 
     function createRow(initial) {
         flowCount += 1;
         var row = document.createElement('div');
         row.className = 'time-flow-row';
+        var presets = getStatusPresets();
+
         row.innerHTML =
             '<div class="time-flow-name">Flow ' + flowCount + '<span class="time-flow-count">0</span></div>' +
             '<div class="time-flow-fields">' +
@@ -957,8 +1351,32 @@
                     '<input type="text" name="flow_' + flowCount + '_label">' +
                 '</div>' +
                 '<button type="button" class="time-flow-icon-btn time-flow-delete-btn" title="Delete flow">🗑️</button>' +
+                '<div class="time-flow-field time-flow-status-block">' +
+                    '<label>Send Order Status</label>' +
+                    '<div class="time-flow-status-row">' +
+                        '<select name="flow_' + flowCount + '_status" class="time-flow-status-select"></select>' +
+                        '<button type="button" class="time-flow-status-create-btn flow-status-pill">+ Create New</button>' +
+                        '<input type="text" name="flow_status_custom" placeholder="Custom status" class="time-flow-status-input flow-status-pill" style="display:none;" />' +
+                        '<button type="button" class="time-flow-status-save-btn flow-status-pill">Save</button>' +
+                        '<button type="button" class="time-flow-status-delete-btn flow-status-pill">Delete</button>' +
+                    '</div>' +
+                '</div>' +
             '</div>';
         listEl.appendChild(row);
+        var emptyEl = document.getElementById('timeFlowListEmpty');
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        // Populate status dropdown from saved presets (or default Approved)
+        var select = row.querySelector('.time-flow-status-select');
+        if (select) {
+            var presetsList = presets && presets.length ? presets : ['Approved'];
+            presetsList.forEach(function(txt, idx) {
+                var opt = document.createElement('option');
+                opt.value = txt;
+                opt.text = txt;
+                select.appendChild(opt);
+            });
+        }
         if (initial) {
             var sIn = row.querySelector('input[name$=\"_start\"]');
             var eIn = row.querySelector('input[name$=\"_end\"]');
@@ -966,6 +1384,22 @@
             if (sIn && initial.start) sIn.value = initial.start;
             if (eIn && initial.end) eIn.value = initial.end;
             if (lIn && initial.label) lIn.value = initial.label;
+            var statusText = (initial.statusText || '').trim();
+            if (statusText && select) {
+                for (var i = 0; i < select.options.length; i++) {
+                    if ((select.options[i].text || select.options[i].value) === statusText) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+                if (select.selectedIndex < 0) {
+                    var opt = document.createElement('option');
+                    opt.value = statusText;
+                    opt.text = statusText;
+                    select.appendChild(opt);
+                    select.selectedIndex = select.options.length - 1;
+                }
+            }
         }
         updateSaveVisibility();
         renumberFlows();
@@ -993,16 +1427,22 @@
             var startInput = row.querySelector('input[name$="_start"]');
             var endInput = row.querySelector('input[name$="_end"]');
             var labelInput = row.querySelector('input[name$="_label"]');
+            var statusSelect = row.querySelector('.time-flow-status-select');
             var startVal = startInput ? (startInput.value || '').trim() : '';
             var endVal = endInput ? (endInput.value || '').trim() : '';
             var labelVal = labelInput ? (labelInput.value || '').trim() : '';
-            // শুধুমাত্র সম্পূর্ণ ভরা ফ্লো (start+end+label) রাখি
+            var statusText = '';
+            if (statusSelect && statusSelect.options[statusSelect.selectedIndex]) {
+                statusText = (statusSelect.options[statusSelect.selectedIndex].text || statusSelect.value || '').trim();
+            }
             if (startVal && endVal && labelVal) {
                 flows.push({
                     name: 'Flow ' + (idx + 1),
                     start: startVal,
                     end: endVal,
-                    label: labelVal
+                    label: labelVal,
+                    statusText: statusText || 'Approved',
+                    rowIndex: idx
                 });
             }
         });
@@ -1058,6 +1498,10 @@
     function renderSections(flows) {
         sectionsEl.innerHTML = '';
         var listData = getListData();
+        var listDataForFlows = listData.filter(function(ld) {
+            var s = ld.el.getAttribute('data-status') || '';
+            return s !== 'delivered' && s !== 'declined';
+        });
 
         // সব ফ্লোর count badge আপডেট করি (প্রতিটি রো আলাদা করে)
         var rows = listEl.querySelectorAll('.time-flow-row');
@@ -1074,7 +1518,7 @@
                 var sMinRow = parseTimeToMinutes(startVal);
                 var eMinRow = parseTimeToMinutes(endVal);
                 if (sMinRow !== null && eMinRow !== null) {
-                    count = listData.filter(function(ld) {
+                    count = listDataForFlows.filter(function(ld) {
                         return ld.createdMinutes !== null &&
                                ld.createdMinutes >= sMinRow &&
                                ld.createdMinutes <= eMinRow;
@@ -1093,49 +1537,173 @@
         }
 
         // flows (valid ফ্লো) এর জন্য সেকশন বানাই
-        flows.forEach(function(flow) {
+        flows.forEach(function(flow, idx) {
             var sMin = parseTimeToMinutes(flow.start);
             var eMin = parseTimeToMinutes(flow.end);
             if (sMin === null || eMin === null) return;
             if (!flow.label) return;
-            var matched = listData.filter(function(ld) {
+            var matched = listDataForFlows.filter(function(ld) {
                 return ld.createdMinutes !== null &&
                        ld.createdMinutes >= sMin &&
                        ld.createdMinutes <= eMin;
             });
-            if (!matched.length) return;
+            /* ম্যাচ না থাকলেও সেকশন দেখাই – নম্বর + ড্রপডাউন + নাম যাতে সবসময় দেখা যায় */
+            var savedState = getSavedCollapsedState();
+            var isCollapsed = savedState[idx] !== undefined ? savedState[idx] : true;
             var sec = document.createElement('div');
-            sec.className = 'delivery-flow-section';
+            sec.className = 'delivery-flow-section' + (isCollapsed ? ' collapsed' : '');
             var title = document.createElement('div');
             title.className = 'delivery-flow-section-title';
             var left = document.createElement('span');
             left.textContent = flow.label;
+            var numSpan = document.createElement('span');
+            numSpan.className = 'flow-num';
+            numSpan.textContent = idx + 1;
+            var statusSelect = document.createElement('select');
+            statusSelect.className = 'delivery-flow-section-status-select';
+            statusSelect.setAttribute('aria-label', 'Send Order Status');
+            var presetsList = getStatusPresets();
+            if (!presetsList || !presetsList.length) presetsList = ['Approved'];
+            presetsList.forEach(function(txt) {
+                var opt = document.createElement('option');
+                opt.value = txt;
+                opt.textContent = txt;
+                statusSelect.appendChild(opt);
+            });
+            var currentStatus = (flow.statusText || 'Approved').trim();
+            if (currentStatus && !presetsList.includes(currentStatus)) {
+                var opt = document.createElement('option');
+                opt.value = currentStatus;
+                opt.textContent = currentStatus;
+                statusSelect.appendChild(opt);
+            }
+            statusSelect.value = currentStatus;
+            var rowIndex = flow.rowIndex;
+            statusSelect.addEventListener('change', function() {
+                var rows = listEl.querySelectorAll('.time-flow-row');
+                var row = rows[rowIndex];
+                if (row) {
+                    var rowSelect = row.querySelector('.time-flow-status-select');
+                    if (rowSelect) {
+                        if (!Array.prototype.find.call(rowSelect.options, function(o) { return o.value === statusSelect.value; })) {
+                            var o = document.createElement('option');
+                            o.value = statusSelect.value;
+                            o.textContent = statusSelect.value;
+                            rowSelect.appendChild(o);
+                        }
+                        rowSelect.value = statusSelect.value;
+                    }
+                }
+                var badges = sec.querySelectorAll('.time-flow-status-badge');
+                badges.forEach(function(b) { b.textContent = statusSelect.value; });
+                saveDeliveryFlow(true);
+            });
+            var toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'delivery-flow-section-toggle';
+            toggleBtn.setAttribute('aria-label', 'খোলা/বন্ধ');
+            toggleBtn.innerHTML = isCollapsed ? '▶' : '⏸';
             var right = document.createElement('small');
             right.textContent = formatTime12(flow.start) + ' – ' + formatTime12(flow.end) + ' • ' + matched.length + ' order';
+            title.appendChild(numSpan);
+            title.appendChild(statusSelect);
+            title.appendChild(toggleBtn);
             title.appendChild(left);
             title.appendChild(right);
+            toggleBtn.addEventListener('click', function() {
+                sec.classList.toggle('collapsed');
+                toggleBtn.innerHTML = sec.classList.contains('collapsed') ? '▶' : '⏸';
+                saveCollapsedState();
+            });
             var container = document.createElement('div');
             container.className = 'delivery-flow-section-body-cards';
+            var statusToShowOnCards = (flow.statusText || 'Approved').trim();
             matched.forEach(function(ld) {
                 var clone = ld.el.cloneNode(true);
                 clone.classList.add('delivery-flow-cloned-card');
+                // Send Order Status Pack number এর পাশে দেখাই
+                var packEl = clone.querySelector('.list-entry-pack-number');
+                if (packEl) {
+                    packEl.appendChild(document.createTextNode(' '));
+                    var statusBadge = document.createElement('span');
+                    statusBadge.className = 'time-flow-status-badge';
+                    statusBadge.textContent = statusToShowOnCards;
+                    packEl.appendChild(statusBadge);
+                }
                 container.appendChild(clone);
             });
             sec.appendChild(title);
             sec.appendChild(container);
             sectionsEl.appendChild(sec);
         });
+
+        // আসল list card গুলোতে "কোন সময়?" badge + Pack number এর পাশে Send Order Status
+        listData.forEach(function(ld) {
+            var existingLabel = ld.el.querySelector('.time-flow-label-badge');
+            if (existingLabel) existingLabel.remove();
+            var packEl = ld.el.querySelector('.list-entry-pack-number');
+            if (packEl) {
+                var oldStatus = packEl.querySelector('.time-flow-status-badge');
+                if (oldStatus) oldStatus.remove();
+                var last = packEl.lastChild;
+                if (last && last.nodeType === 3 && /^\s*$/.test(last.textContent)) last.remove();
+            }
+            var labelToShow = null;
+            var statusToShow = null;
+            var listStatus = ld.el.getAttribute('data-status') || '';
+            if (listStatus === 'delivered') {
+            } else if (listStatus === 'declined') {
+                statusToShow = 'CANCELLED';
+            } else {
+                for (var f = 0; f < flows.length; f++) {
+                    var flow = flows[f];
+                    if (!flow.label) continue;
+                    var sMin = parseTimeToMinutes(flow.start);
+                    var eMin = parseTimeToMinutes(flow.end);
+                    if (sMin === null || eMin === null) continue;
+                    if (ld.createdMinutes !== null && ld.createdMinutes >= sMin && ld.createdMinutes <= eMin) {
+                        labelToShow = flow.label;
+                        statusToShow = (flow.statusText || 'Approved').trim();
+                        break;
+                    }
+                }
+            }
+            if (packEl && labelToShow) {
+                packEl.appendChild(document.createTextNode(' '));
+                var badge = document.createElement('span');
+                badge.className = 'time-flow-label-badge';
+                badge.textContent = labelToShow;
+                packEl.appendChild(badge);
+            }
+            if (packEl && statusToShow) {
+                packEl.appendChild(document.createTextNode(' '));
+                var statusBadge = document.createElement('span');
+                statusBadge.className = 'time-flow-status-badge';
+                statusBadge.textContent = statusToShow;
+                packEl.appendChild(statusBadge);
+            }
+        });
     }
 
+    var DELIVERY_FLOW_PANEL_STORAGE_KEY = 'eayShop_deliveryFlowPanel_open';
     toggleBtn.addEventListener('click', function() {
         var isOpen = panel.classList.contains('show');
         panel.classList.toggle('show', !isOpen);
         toggleBtn.classList.toggle('total-active', !isOpen);
-        // শুধু Delivery Flow প্যানেল ওপেন/ক্লোজ হচ্ছে, List Entry অন্য অংশ আগের মতই থাকবে
+        try {
+            localStorage.setItem(DELIVERY_FLOW_PANEL_STORAGE_KEY, !isOpen ? 'true' : 'false');
+        } catch (e) {}
     });
+    try {
+        if (localStorage.getItem(DELIVERY_FLOW_PANEL_STORAGE_KEY) === 'true') {
+            panel.classList.add('show');
+            toggleBtn.classList.add('total-active');
+        }
+    } catch (e) {}
 
     createBtn.addEventListener('click', function() {
         createRow();
+        saveDeliveryFlow(true);
     });
 
     listEl.addEventListener('click', function(e) {
@@ -1145,38 +1713,101 @@
             if (!rowDel) return;
             if (confirm('এই ফ্লো রো মুছবেন?')) {
                 rowDel.remove();
+                var emptyEl = document.getElementById('timeFlowListEmpty');
+                if (emptyEl && !listEl.querySelector('.time-flow-row')) emptyEl.style.display = 'block';
                 updateSaveVisibility();
                 renumberFlows();
                 var flows = collectFlows();
                 if (!flows.length) {
-                    // সব ফ্লো মুছে গেলে — Delivery Flow সেকশন পরিষ্কার করি, মূল লিস্ট আগের মতই থাকে
                     sectionsEl.innerHTML = '';
                 } else {
                     renderSections(flows);
                 }
+                saveDeliveryFlow(true);
             }
+        } else if (target.classList.contains('time-flow-status-create-btn')) {
+            var row = target.closest('.time-flow-row');
+            if (!row) return;
+            var input = row.querySelector('.time-flow-status-input');
+            if (!input) return;
+            // small visual feedback
+            target.classList.add('pulse');
+            setTimeout(function() { target.classList.remove('pulse'); }, 180);
+            input.style.display = 'block';
+            input.focus();
+        } else if (target.classList.contains('time-flow-status-save-btn')) {
+            var row = target.closest('.time-flow-row');
+            if (!row) return;
+            var select = row.querySelector('.time-flow-status-select');
+            var input = row.querySelector('.time-flow-status-input');
+            if (!select || !input) return;
+            var txt = (input.value || '').trim();
+            if (!txt) return;
+
+            // visual effect on Save
+            target.classList.add('pulse');
+            setTimeout(function() { target.classList.remove('pulse'); }, 180);
+
+            // Check if this text already exists as an option (by value)
+            var exists = false;
+            Array.prototype.slice.call(select.options).forEach(function(opt) {
+                if ((opt.value || opt.text.replace(' ✕', '')) === txt) {
+                    exists = true;
+                }
+            });
+            if (!exists) {
+                var opt = document.createElement('option');
+                opt.value = txt;
+                opt.text = txt;
+                select.appendChild(opt);
+            }
+            select.value = txt;
+            input.value = '';
+            input.style.display = 'none';
+            saveStatusPresetsFromDOM();
+            saveDeliveryFlow(true);
+        } else if (target.classList.contains('time-flow-status-delete-btn')) {
+            var row = target.closest('.time-flow-row');
+            if (!row) return;
+            var select = row.querySelector('.time-flow-status-select');
+            if (!select || select.options.length === 0) return;
+            var idx = select.selectedIndex;
+            if (idx < 0) return;
+            var opt = select.options[idx];
+            var label = opt.text || opt.value || '';
+            if (!confirm('"' + label + '" status option টি মুছবেন?')) return;
+            // visual effect on Delete
+            target.classList.add('pulse');
+            setTimeout(function() { target.classList.remove('pulse'); }, 180);
+            select.remove(idx);
+            if (select.options.length > 0) {
+                select.selectedIndex = 0;
+            }
+            saveStatusPresetsFromDOM();
+            saveDeliveryFlow(true);
         }
     });
 
+    var saveDeliveryFlowInputTimeout;
     listEl.addEventListener('input', function(e) {
         var target = e.target;
         if (target.tagName === 'INPUT' && (/_start$|_end$|_label$/).test(target.name || '')) {
             var flows = collectFlows();
             if (!flows.length) {
-                // কোনো ভ্যালিড ফ্লো না থাকলে শুধু Delivery Flow ভিউ ক্লিয়ার করি
                 sectionsEl.innerHTML = '';
                 return;
             }
             renderSections(flows);
+            clearTimeout(saveDeliveryFlowInputTimeout);
+            saveDeliveryFlowInputTimeout = setTimeout(function() { saveDeliveryFlow(true); }, 400);
         }
     });
 
-    saveBtn.addEventListener('click', function() {
+    function saveDeliveryFlow(silent) {
         var flows = collectFlows();
         renderSections(flows);
-        console.log('Delivery Flow config:', flows);
         if (!saveUrl) {
-            alert('Delivery Flow আপডেট করা হয়েছে।');
+            if (!silent) alert('Delivery Flow আপডেট করা হয়েছে।');
             return;
         }
         var body = 'flows=' + encodeURIComponent(JSON.stringify(flows));
@@ -1196,11 +1827,42 @@
                 alert('Delivery Flow আপডেট করা যায়নি। আবার চেষ্টা করুন।');
                 return;
             }
-            alert('Delivery Flow আপডেট করা হয়েছে।');
+            if (!silent) alert('Delivery Flow আপডেট করা হয়েছে।');
         }).catch(function() {
             alert('Delivery Flow আপডেট করার সময় ত্রুটি হয়েছে।');
         });
+    }
+
+    saveBtn.addEventListener('click', function() {
+        saveDeliveryFlow(false);
     });
+
+    listEl.addEventListener('change', function(e) {
+        if (e.target.classList.contains('time-flow-status-select')) {
+            saveDeliveryFlow(true);
+        }
+    });
+
+    var FLOW_SET_STEP_STORAGE_KEY = 'eayShop_flowSetStepBlock_collapsed';
+    var flowSetStepToggle = document.getElementById('flowSetStepToggle');
+    var flowSetStepBlock = document.getElementById('flowSetStepBlock');
+    if (flowSetStepToggle && flowSetStepBlock) {
+        try {
+            var saved = localStorage.getItem(FLOW_SET_STEP_STORAGE_KEY);
+            if (saved === 'true') {
+                flowSetStepBlock.classList.add('collapsed');
+                flowSetStepToggle.innerHTML = '▶';
+            }
+        } catch (e) {}
+        flowSetStepToggle.addEventListener('click', function() {
+            flowSetStepBlock.classList.toggle('collapsed');
+            var isCollapsed = flowSetStepBlock.classList.contains('collapsed');
+            flowSetStepToggle.innerHTML = isCollapsed ? '▶' : '⏸';
+            try {
+                localStorage.setItem(FLOW_SET_STEP_STORAGE_KEY, isCollapsed ? 'true' : 'false');
+            } catch (e) {}
+        });
+    }
 
     // Load any existing persisted flows into UI on first load
     if (initialFlows && initialFlows.length) {
@@ -1213,27 +1875,8 @@
     }
 })();
 (function() {
-    var modal = document.getElementById('adminCommentModal');
-    var iframe = document.getElementById('adminCommentIframe');
-    document.querySelectorAll('.open-comment-modal').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            iframe.src = this.getAttribute('data-comment-url');
-            modal.classList.add('active');
-        });
-    });
-    document.querySelector('.comment-modal-close').addEventListener('click', function() {
-        iframe.src = 'about:blank';
-        modal.classList.remove('active');
-    });
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            iframe.src = 'about:blank';
-            modal.classList.remove('active');
-        }
-    });
+    // Admin comment modal disabled (message icon hidden)
 })();
-
 function generateOne(btn, pk, url) {
     var container = document.getElementById('ai-content-' + pk);
     if (!container || !url) return Promise.resolve();
@@ -1261,112 +1904,9 @@ document.querySelectorAll('.ai-generate-btn').forEach(function(btn) {
     });
 });
 
-var generateAllBtn = document.getElementById('aiGenerateAllBtn');
-if (generateAllBtn) {
-    generateAllBtn.addEventListener('click', function() {
-        var btns = document.querySelectorAll('.ai-generate-btn');
-        if (!btns.length) return;
-        generateAllBtn.disabled = true;
-        var promises = [];
-        btns.forEach(function(btn) {
-            promises.push(generateOne(btn, btn.getAttribute('data-list-pk'), btn.getAttribute('data-ai-url')));
-        });
-        Promise.all(promises).finally(function() { generateAllBtn.disabled = false; });
-    });
-}
+// Bulk AI generate button removed
 
-(function() {
-    var writeBtn = document.getElementById('writeStatusToggleBtn');
-    var wrap = document.getElementById('writeStatusWrap');
-    var form = document.getElementById('writeStatusForm');
-    var input = document.getElementById('writeStatusInput');
-    var clearBtn = document.getElementById('writeStatusClearBtn');
-    if (!form) return;
-    var csrfToken = (form.querySelector('input[name="csrfmiddlewaretoken"]') || document.querySelector('input[name="csrfmiddlewaretoken"]'));
-    csrfToken = csrfToken ? csrfToken.value : '';
-
-    function applyStatusText(text) {
-        var val = (text || '').trim();
-        document.querySelectorAll('.list-status-chip').forEach(function(chip) {
-            var def = chip.getAttribute('data-default') || '';
-            if (val) {
-                chip.textContent = val;
-                chip.classList.add('has-custom');
-            } else {
-                chip.textContent = def;
-                chip.classList.remove('has-custom');
-            }
-        });
-        document.querySelectorAll('.inline-status-text').forEach(function(el) {
-            var def = el.getAttribute('data-default') || '';
-            if (val) {
-                el.textContent = val;
-                el.classList.add('has-custom');
-            } else {
-                el.textContent = def;
-                el.classList.remove('has-custom');
-            }
-        });
-        if (writeBtn) {
-            if (val) writeBtn.classList.add('active');
-            else writeBtn.classList.remove('active');
-        }
-        if (input) {
-            input.value = val;
-        }
-    }
-
-    function postStatus(value) {
-        var trimmed = (value || '').trim();
-        var data = new FormData();
-        data.append('status_text', trimmed);
-        if (csrfToken) {
-            data.append('csrfmiddlewaretoken', csrfToken);
-        }
-        fetch(form.getAttribute('action'), {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
-            body: data
-        }).then(function(r) { return r.json(); })
-        .then(function(resp) {
-            if (resp && resp.success) {
-                applyStatusText(resp.status_text || '');
-            } else {
-                alert('স্ট্যাটাস আপডেট করা যায়নি। আবার চেষ্টা করুন।');
-            }
-        }).catch(function() {
-            alert('স্ট্যাটাস আপডেট করার সময় ত্রুটি হয়েছে।');
-        });
-    }
-
-    if (writeBtn && wrap) {
-        writeBtn.addEventListener('click', function() {
-            wrap.classList.toggle('show');
-            if (wrap.classList.contains('show') && input) {
-                setTimeout(function() { input.focus(); input.select(); }, 0);
-            }
-        });
-    }
-
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            postStatus(input ? input.value : '');
-        });
-    }
-
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            postStatus('');
-        });
-    }
-
-    // initialize active state based on initial value
-    if (input && input.value.trim()) {
-        if (writeBtn) writeBtn.classList.add('active');
-    }
-})();
-
+// Write Status JS removed
 (function() {
     var consolidatedBtn = document.getElementById('consolidatedToggleBtn');
     var userViewBtn = document.getElementById('userViewToggleBtn');
@@ -1553,6 +2093,7 @@ if (generateAllBtn) {
         var items = document.querySelectorAll('#inlineUserViewPanel .inline-user-item');
         items.forEach(function(userItem) {
             var anyVisible = false;
+            var visibleCount = 0;
             var listItems = userItem.querySelectorAll('.inline-list-item');
             listItems.forEach(function(li) {
                 var createdIso = li.getAttribute('data-created') || '';
@@ -1575,10 +2116,16 @@ if (generateAllBtn) {
                 if (minutes >= sMin && minutes <= eMin) {
                     li.style.display = '';
                     anyVisible = true;
+                    visibleCount += 1;
                 } else {
                     li.style.display = 'none';
                 }
             });
+            // badge count ke visible list er sathe match kori
+            var badge = userItem.querySelector('.inline-user-badge');
+            if (badge) {
+                badge.textContent = visibleCount;
+            }
             userItem.style.display = anyVisible ? '' : 'none';
         });
     }
@@ -1665,10 +2212,10 @@ if (generateAllBtn) {
             updateVisibility();
         });
     });
-    document.querySelectorAll('.inline-user-click').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
+    document.querySelectorAll('#inlineUserViewPanel .inline-user-item .name').forEach(function(nameEl) {
+        nameEl.addEventListener('click', function(e) {
             e.stopPropagation();
-            var item = btn.closest('.inline-user-item');
+            var item = this.closest('.inline-user-item');
             var dd = item && item.querySelector('.inline-lists-dropdown');
             if (dd) { dd.classList.toggle('show'); item.classList.toggle('open'); }
         });

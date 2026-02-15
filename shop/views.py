@@ -1,4 +1,6 @@
 from datetime import datetime, date, timedelta
+import json
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import login, logout, authenticate
@@ -12,8 +14,8 @@ from django.db.models import Q, Max
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
-from .models import MarketList, FamilyProfile, Notice, Conversation, Message, MarketListComment, Pathway, PathwayImage, DeliveryFlow
-from .forms import FamilyRegistrationForm, MarketListForm, NoticeForm, MessageForm, MarketListCommentForm, ProfileEditForm, PasswordChangeForm
+from .models import MarketList, FamilyProfile, Notice, Conversation, Message, MarketListComment, Pathway, PathwayImage, DeliveryFlow, SendStatusPreset
+from .forms import FamilyRegistrationForm, MarketListForm, NoticeForm, MessageForm, MarketListCommentForm, ProfileEditForm, PasswordChangeForm, AdminMarketListEditForm
 
 
 def landing_page(request):
@@ -95,17 +97,27 @@ def _unread_message_count(user):
 def family_dashboard(request):
     if request.user.is_staff:
         return redirect('landing_page')
-    # Auto-approve pending lists 10 seconds after user sends
-    cutoff = timezone.now() - timedelta(seconds=10)
-    MarketList.objects.filter(status='pending', created_at__lte=cutoff).update(
-        status='approved', approved_at=timezone.now()
-    )
     # প্রধান হিস্টোরি: পেন্ডিং + অ্যাপ্রুভড
     lists = MarketList.objects.filter(family=request.user, status__in=['pending', 'approved']).order_by('-created_at')
     # ডেলিভার্ড ফোল্ডার: তারিখ ও সময় অনুযায়ী
     delivered_lists = MarketList.objects.filter(family=request.user, status='delivered').order_by('-delivered_at', '-created_at')
     # ডিক্লাইন্ড ফোল্ডার: তারিখ ও সময় অনুযায়ী
     declined_lists = MarketList.objects.filter(family=request.user, status='declined').order_by('-declined_at', '-created_at')
+    # লিস্ট হিস্টোরিতে প্যাক নম্বরের পাশে Send Order Status (Delivery Flow অনুযায়ী)
+    flows = list(DeliveryFlow.objects.all().order_by('sort_order', 'id'))
+    lists_with_status = []
+    for lst in lists:
+        order_time = None
+        if lst.created_at:
+            dt = timezone.localtime(lst.created_at) if getattr(lst.created_at, 'tzinfo', None) else lst.created_at
+            order_time = dt.time()
+        flow_status = None
+        if order_time and flows:
+            for f in flows:
+                if f.start_time <= order_time <= f.end_time:
+                    flow_status = f.status_text or 'Approved'
+                    break
+        lists_with_status.append((lst, flow_status))
     form = MarketListForm()
     notice = Notice.get_latest()
     unread_count = _unread_message_count(request.user)
@@ -117,7 +129,8 @@ def family_dashboard(request):
         display_name = request.user.username
         profile_avatar = None
     return render(request, 'shop/family_dashboard.html', {
-        'lists': lists, 'delivered_lists': delivered_lists, 'declined_lists': declined_lists,
+        'lists': lists, 'lists_with_status': lists_with_status,
+        'delivered_lists': delivered_lists, 'declined_lists': declined_lists,
         'form': form, 'notice': notice, 'unread_message_count': unread_count,
         'display_name': display_name, 'profile_avatar': profile_avatar,
     })
@@ -136,6 +149,9 @@ def send_market_list(request):
             lines = [s.strip() for s in content.splitlines() if s.strip()]
             market_list.content = '\n'.join(lines)
             market_list.family = request.user
+            # New lists will be treated as approved immediately (no pending state)
+            market_list.status = 'approved'
+            market_list.approved_at = timezone.now()
             market_list.save()
             # লিস্ট সাবমিট হলেই অটো AI দিয়ে জেনারেট
             if market_list.content:
@@ -146,6 +162,20 @@ def send_market_list(request):
         lists = MarketList.objects.filter(family=request.user, status__in=['pending', 'approved']).order_by('-created_at')
         delivered_lists = MarketList.objects.filter(family=request.user, status='delivered').order_by('-delivered_at', '-created_at')
         declined_lists = MarketList.objects.filter(family=request.user, status='declined').order_by('-declined_at', '-created_at')
+        flows = list(DeliveryFlow.objects.all().order_by('sort_order', 'id'))
+        lists_with_status = []
+        for lst in lists:
+            order_time = None
+            if lst.created_at:
+                dt = timezone.localtime(lst.created_at) if getattr(lst.created_at, 'tzinfo', None) else lst.created_at
+                order_time = dt.time()
+            flow_status = None
+            if order_time and flows:
+                for f in flows:
+                    if f.start_time <= order_time <= f.end_time:
+                        flow_status = f.status_text or 'Approved'
+                        break
+            lists_with_status.append((lst, flow_status))
         notice = Notice.get_latest()
         unread_count = _unread_message_count(request.user)
         try:
@@ -153,7 +183,8 @@ def send_market_list(request):
         except FamilyProfile.DoesNotExist:
             display_name = request.user.username
         return render(request, 'shop/family_dashboard.html', {
-            'lists': lists, 'delivered_lists': delivered_lists, 'declined_lists': declined_lists,
+            'lists': lists, 'lists_with_status': lists_with_status,
+            'delivered_lists': delivered_lists, 'declined_lists': declined_lists,
             'form': form, 'notice': notice, 'unread_message_count': unread_count,
             'display_name': display_name,
         })
@@ -166,7 +197,7 @@ def update_market_list(request, pk):
     if request.user.is_staff:
         return redirect('landing_page')
     market_list = get_object_or_404(MarketList, pk=pk, family=request.user)
-    if market_list.status != 'pending':
+    if market_list.status not in ('pending', 'approved'):
         return redirect('family_dashboard')
     if request.method == 'POST':
         form = MarketListForm(request.POST, instance=market_list)
@@ -253,11 +284,6 @@ def delete_market_list(request, pk):
 
 @staff_member_required(login_url='management_login')
 def management_dashboard(request):
-    # Auto-approve pending lists 10 seconds after user sends
-    cutoff = timezone.now() - timedelta(seconds=10)
-    MarketList.objects.filter(status='pending', created_at__lte=cutoff).update(
-        status='approved', approved_at=timezone.now()
-    )
     filter_status = request.GET.get('filter', 'total')
     lists = MarketList.objects.all().select_related('family', 'family__family_profile')
     if filter_status == 'approved':
@@ -268,8 +294,7 @@ def management_dashboard(request):
         lists = lists.filter(status='delivered')
     elif filter_status == 'declined':
         lists = lists.filter(status='declined')
-    elif filter_status == 'late_transferred':
-        lists = lists.filter(status='late_transferred')
+    # 'late_transferred' status removed
     else:
         # Default "total" view: exclude delivered/declined/late_transferred so they move out once handled
         lists = lists.exclude(status__in=['delivered', 'declined', 'late_transferred'])
@@ -283,12 +308,38 @@ def management_dashboard(request):
             lst.user_avatar_url = None
         except Exception:
             lst.user_avatar_url = None
-    total_count = MarketList.objects.exclude(status__in=['delivered', 'declined', 'late_transferred']).count()
+    # Delivered lists for toggle section on Total view (same display attrs)
+    delivered_qs = MarketList.objects.filter(status='delivered').select_related('family', 'family__family_profile').order_by('-delivered_at', '-created_at')
+    delivered_lists = []
+    for lst in delivered_qs:
+        try:
+            lst.user_display_name = lst.family.family_profile.display_name or lst.family.username
+            lst.user_avatar_url = lst.family.family_profile.avatar.url if lst.family.family_profile.avatar else None
+        except FamilyProfile.DoesNotExist:
+            lst.user_display_name = lst.family.username
+            lst.user_avatar_url = None
+        except Exception:
+            lst.user_avatar_url = None
+        delivered_lists.append(lst)
+    # Declined/Cancelled lists for toggle section on Total view
+    declined_qs = MarketList.objects.filter(status='declined').select_related('family', 'family__family_profile').order_by('-declined_at', '-created_at')
+    declined_lists = []
+    for lst in declined_qs:
+        try:
+            lst.user_display_name = lst.family.family_profile.display_name or lst.family.username
+            lst.user_avatar_url = lst.family.family_profile.avatar.url if lst.family.family_profile.avatar else None
+        except FamilyProfile.DoesNotExist:
+            lst.user_display_name = lst.family.username
+            lst.user_avatar_url = None
+        except Exception:
+            lst.user_avatar_url = None
+        declined_lists.append(lst)
+    total_count = MarketList.objects.exclude(status__in=['delivered', 'declined']).count()
     approved_count = MarketList.objects.filter(status='approved').count()
     pending_count = MarketList.objects.filter(status='pending').count()
     delivered_count = MarketList.objects.filter(status='delivered').count()
     declined_count = MarketList.objects.filter(status='declined').count()
-    late_transferred_count = MarketList.objects.filter(status='late_transferred').count()
+    late_transferred_count = 0
     # Delivery path setup pending: profiles with at least one path field empty (exclude deleted)
     delivery_path_pending_count = FamilyProfile.objects.filter(is_deleted=False).filter(
         Q(area_name='') | Q(section_no='') | Q(building_name='') |
@@ -322,7 +373,7 @@ def management_dashboard(request):
             'content': lst.content or '',
             'ai_content': lst.ai_content or '',
         })
-    total_notes_qs = MarketList.objects.exclude(status__in=['delivered', 'declined', 'late_transferred']).values_list('note', flat=True)
+    total_notes_qs = MarketList.objects.exclude(status__in=['delivered', 'declined']).values_list('note', flat=True)
     note_values = []
     for note in total_notes_qs:
         note_clean = (note or '').strip()
@@ -340,14 +391,19 @@ def management_dashboard(request):
             'label': f.label,
             'start': f.start_time.strftime('%H:%M'),
             'end': f.end_time.strftime('%H:%M'),
+            'statusText': f.status_text or 'Approved',
         })
     users_list = [
         {'user_id': uid, 'display_name': data['display_name'], 'count': len(data['lists']), 'lists': data['lists']}
         for uid, data in users_data.items()
     ]
     users_list.sort(key=lambda x: (x['display_name'].upper(), x['user_id']))
+    presets = list(SendStatusPreset.objects.values_list('text', flat=True))
+
     return render(request, 'shop/management_dashboard.html', {
         'lists': lists_qs,
+        'delivered_lists': delivered_lists,
+        'declined_lists': declined_lists,
         'filter_status': filter_status,
         'total_count': total_count,
         'approved_count': approved_count,
@@ -363,6 +419,7 @@ def management_dashboard(request):
         'users_list': users_list,
         'status_override': status_override,
         'delivery_flows': delivery_flows,
+        'send_status_presets': presets,
     })
 
 
@@ -399,6 +456,7 @@ def save_delivery_flow(request):
             label=label,
             start_time=start_time,
             end_time=end_time,
+            status_text=(flow.get('statusText') or flow.get('status') or 'Approved').strip()[:255],
             sort_order=idx,
         )
         created += 1
@@ -407,9 +465,36 @@ def save_delivery_flow(request):
 
 @staff_member_required(login_url='management_login')
 @require_POST
+def save_send_status_presets(request):
+    """Persist admin 'Send Order Status' preset texts globally."""
+    raw = request.POST.get('presets') or '[]'
+    try:
+        data = json.loads(raw)
+        if not isinstance(data, list):
+            raise ValueError
+    except Exception:
+        return JsonResponse({'success': False, 'error': 'Invalid data'}, status=400)
+
+    # Replace all presets with new ordered list
+    SendStatusPreset.objects.all().delete()
+    bulk = []
+    order = 0
+    for txt in data:
+        txt = (txt or '').strip()
+        if not txt:
+            continue
+        bulk.append(SendStatusPreset(text=txt, sort_order=order))
+        order += 1
+    if bulk:
+        SendStatusPreset.objects.bulk_create(bulk)
+    return JsonResponse({'success': True, 'count': len(bulk)})
+
+
+@staff_member_required(login_url='management_login')
+@require_POST
 def write_list_status(request):
     status_text = (request.POST.get('status_text') or '').strip()
-    qs = MarketList.objects.exclude(status__in=['delivered', 'declined', 'late_transferred'])
+    qs = MarketList.objects.exclude(status__in=['delivered', 'declined'])
     if status_text:
         qs.update(note=status_text)
     else:
@@ -519,12 +604,24 @@ def user_directory(request):
             continue
         area_sections_buildings_profiles_list.append((area, area_count, secs, pathway_has_images(area, '', '')))
 
+    # Delivery Flow configuration (same as admin dashboard) – used to tag lists in Delivery Funnel
+    delivery_flows_qs = DeliveryFlow.objects.all().order_by('sort_order', 'id')
+    delivery_flows = []
+    for idx, f in enumerate(delivery_flows_qs, 1):
+        delivery_flows.append({
+            'name': f.name or f"Flow {idx}",
+            'label': f.label,
+            'start': f.start_time.strftime('%H:%M'),
+            'end': f.end_time.strftime('%H:%M'),
+        })
+
     return render(request, 'shop/user_directory.html', {
         'profiles': all_profiles,
         'completed_count': completed.count(),
         'pending_count': pending.count(),
         'completed_ids': completed_ids,
         'area_sections_buildings_profiles_list': area_sections_buildings_profiles_list,
+        'delivery_flows': delivery_flows,
     })
 
 
@@ -621,6 +718,9 @@ def pathway_upload(request):
     img_file = request.FILES.get('image')
     if not img_file:
         return JsonResponse({'success': False, 'error': 'Image file required'}, status=400)
+    # Frontend sends pre-compressed images (max 500KB); allow up to 600KB as safety
+    if img_file.size > 600 * 1024:
+        return JsonResponse({'success': False, 'error': 'Image too large (max 500KB after compression)'}, status=400)
     max_pos = pathway.images.aggregate(m=Max('position'))['m']
     position = (max_pos or -1) + 1
     pi = PathwayImage.objects.create(pathway=pathway, image=img_file, position=position)
@@ -660,6 +760,8 @@ def pathway_replace(request, image_id):
     img_file = request.FILES.get('image')
     if not img_file:
         return JsonResponse({'success': False, 'error': 'Image file required'}, status=400)
+    if img_file.size > 600 * 1024:
+        return JsonResponse({'success': False, 'error': 'Image too large (max 500KB after compression)'}, status=400)
     pi.image = img_file
     pi.save()
     return JsonResponse({'success': True, 'url': pi.image.url})
@@ -755,6 +857,32 @@ def user_profile_detail(request, user_id):
 
 
 @staff_member_required(login_url='management_login')
+def edit_user_profile(request, user_id):
+    """Edit user profile info (full name, phone, address) from User Profiles. Staff only."""
+    from .forms import ProfileEditForm
+    user = get_object_or_404(User, pk=user_id)
+    try:
+        profile = user.family_profile
+    except FamilyProfile.DoesNotExist:
+        messages.error(request, 'প্রোফাইল খুঁজে পাওয়া যায়নি।')
+        return redirect('user_profiles')
+    if profile.is_deleted:
+        messages.error(request, 'মুছে ফেলা প্রোফাইল এডিট করা যাবে না।')
+        return redirect('user_profiles')
+    form = ProfileEditForm(instance=profile)
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'প্রোফাইল সেভ হয়েছে।')
+            return redirect('user_profiles')
+    return render(request, 'shop/edit_user_profile.html', {
+        'profile': profile,
+        'form': form,
+    })
+
+
+@staff_member_required(login_url='management_login')
 def approve_list(request, pk):
     market_list = get_object_or_404(MarketList, pk=pk)
     if market_list.status == 'pending':
@@ -804,9 +932,9 @@ def deliver_list(request, pk):
 
 @staff_member_required(login_url='management_login')
 def restore_list(request, pk):
-    """Bring delivered/declined/late_transferred list back to Total Order Received (approved)."""
+    """Bring delivered/declined list back to Total Order Received (approved)."""
     market_list = get_object_or_404(MarketList, pk=pk)
-    if market_list.status in ('delivered', 'declined', 'late_transferred'):
+    if market_list.status in ('delivered', 'declined'):
         market_list.status = 'approved'
         market_list.approved_at = timezone.now()
         market_list.delivered_at = None
@@ -824,6 +952,25 @@ def admin_delete_list(request, pk):
     market_list.delete()
     ref = request.META.get('HTTP_REFERER')
     return redirect(ref if ref else 'management_dashboard')
+
+
+@staff_member_required(login_url='management_login')
+def admin_edit_list(request, pk):
+    """Admin: edit list content, ai_content, note. Redirect back to dashboard with same filter."""
+    market_list = get_object_or_404(MarketList, pk=pk)
+    back_filter = request.GET.get('filter', 'total')
+    if request.method == 'POST':
+        form = AdminMarketListEditForm(request.POST, instance=market_list)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('management_dashboard') + '?filter=' + back_filter)
+    else:
+        form = AdminMarketListEditForm(instance=market_list)
+    return render(request, 'shop/admin_edit_list.html', {
+        'form': form,
+        'market_list': market_list,
+        'back_filter': back_filter,
+    })
 
 
 def _ai_organize_list(content):

@@ -82,6 +82,16 @@ class MarketListForm(forms.ModelForm):
         fields = ['content']
 
 
+class AdminMarketListEditForm(forms.ModelForm):
+    content = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 5, 'placeholder': 'মূল লিস্ট'}), label='মূল লিস্ট')
+    ai_content = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 5, 'placeholder': 'AI লিস্ট'}), label='AI লিস্ট')
+    note = forms.CharField(required=False, widget=forms.TextInput(attrs={'placeholder': 'স্ট্যাটাস নোট (যেমন Delivered)'}), label='নোট')
+
+    class Meta:
+        model = MarketList
+        fields = ['content', 'ai_content', 'note']
+
+
 class ProfileEditForm(forms.ModelForm):
     email = forms.EmailField(required=False, label='ইমেইল', widget=forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'example@email.com'}))
 

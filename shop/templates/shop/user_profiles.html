@@ -1,46 +1,301 @@
 {% extends 'shop/base.html' %}
 {% block title %}User Profiles - EasyShop{% endblock %}
 {% block extra_css %}
-.up-theme { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%) !important; min-height: 100vh; background-attachment: fixed; color: white; }
-.up-theme .container { max-width: 800px; }
-.up-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 12px; }
-.up-header h1 { font-size: 1.4rem; margin: 0; }
-.up-back { color: #60a5fa; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; padding: 8px; border-radius: 10px; }
-.up-back:hover { background: rgba(96,165,250,0.15); }
-.profile-card {
-    background: #374151;
+body, main { background: #0f172a !important; padding-top: 0 !important; margin-top: 0 !important; }
+.up-theme {
+    background: #0f172a;
+    min-height: 100vh;
+    color: #e2e8f0;
+    position: relative;
+    padding: 0 24px 40px 24px;
+}
+.up-theme .container {
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+    padding-bottom: 40px;
+}
+.up-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+    border-radius: 20px;
+    background: radial-gradient(circle at top left, rgba(56,189,248,0.25), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(244,114,182,0.28), transparent 55%),
+                rgba(15,23,42,0.92);
+    box-shadow: 0 22px 60px rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.5);
+    backdrop-filter: blur(16px);
+}
+.up-header h1 {
+    font-size: 1.6rem;
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ffffff 0%, #bfdbfe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.up-nav-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.up-home {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border: 1px solid #4b5563;
+    color: #60a5fa;
+    text-decoration: none;
+    background: radial-gradient(circle at top, rgba(96,165,250,0.2), rgba(96,165,250,0.1));
+    border: 1px solid rgba(96,165,250,0.3);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(96,165,250,0.2);
 }
-.profile-card .row { display: flex; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 8px; }
-.profile-card .row:last-of-type { margin-bottom: 0; }
-.profile-card .label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
-.profile-card .val { font-size: 0.95rem; color: #e5e7eb; }
-.profile-card .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
-.profile-card .btn-order { padding: 8px 16px; background: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-size: 0.9rem; }
-.profile-card .btn-order:hover { background: #3b82f6; color: white; }
-.profile-card .btn-delete { padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
-.profile-card .btn-delete:hover { background: #ef4444; }
-.up-empty { text-align: center; padding: 48px 24px; color: #9ca3af; }
-.up-empty a { color: #60a5fa; }
-.up-trash-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 18px; background: #4b5563; color: #fbbf24;
-    border: 1px solid #6b7280; border-radius: 10px;
-    font-weight: 600; font-size: 0.9rem; cursor: pointer;
+.up-home:hover {
+    background: radial-gradient(circle at top, rgba(96,165,250,0.35), rgba(96,165,250,0.2));
+    border-color: rgba(96,165,250,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(96,165,250,0.35);
+}
+.up-home svg { width: 22px; height: 22px; }
+.profile-card {
+    background: radial-gradient(circle at top left, rgba(55,65,81,0.95), rgba(15,23,42,0.98));
+    border-radius: 20px;
+    padding: 24px 26px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(75,85,99,0.9);
+    box-shadow: 0 20px 60px rgba(15,23,42,0.9), 0 8px 24px rgba(5,150,105,0.1);
+    backdrop-filter: blur(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.profile-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.profile-card:hover {
+    box-shadow: 0 28px 80px rgba(15,23,42,1), 0 12px 40px rgba(37,99,235,0.25);
+    transform: translateY(-4px);
+    border-color: rgba(96,165,250,0.5);
+}
+.profile-card:hover::before {
+    opacity: 1;
+}
+.profile-card .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+    margin-bottom: 12px;
+}
+.profile-card .row:last-of-type {
+    margin-bottom: 0;
+}
+.profile-card .label {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 4px;
+}
+.profile-card .val {
+    font-size: 1rem;
+    color: #e5e7eb;
+    font-weight: 600;
+}
+.profile-card .actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.profile-card .btn-order {
+    padding: 12px 20px;
+    background: radial-gradient(circle at top, rgba(37,99,235,1), rgba(30,64,175,1));
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(37,99,235,0.4);
+    border: 1px solid rgba(191,219,254,0.3);
+}
+.profile-card .btn-order:hover {
+    background: radial-gradient(circle at top, rgba(59,130,246,1), rgba(37,99,235,1));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(37,99,235,0.5);
+    color: white;
+}
+.profile-card .btn-edit {
+    padding: 12px 20px;
+    background: radial-gradient(circle at top, rgba(5,150,105,1), rgba(4,120,87,1));
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(5,150,105,0.4);
+    border: 1px solid rgba(167,243,208,0.3);
+}
+.profile-card .btn-edit:hover {
+    background: radial-gradient(circle at top, rgba(16,185,129,1), rgba(5,150,105,1));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(5,150,105,0.5);
+    color: white;
+}
+.profile-card .btn-delete {
+    padding: 12px 20px;
+    background: radial-gradient(circle at top, rgba(220,38,38,1), rgba(185,28,28,1));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
     font-family: inherit;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(220,38,38,0.4);
+    border: 1px solid rgba(254,202,202,0.3);
 }
-.up-trash-btn:hover { background: #6b7280; }
-.up-trash-badge { background: #dc2626; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
-.up-trash-section { margin-top: 24px; }
-.trash-card { opacity: 0.95; }
-.trash-deleted-at { font-size: 0.8rem; color: #fbbf24; margin-top: 8px; }
-.btn-restore { padding: 8px 16px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
-.btn-restore:hover { background: #10b981; }
-.btn-permanent { padding: 8px 16px; background: #dc2626; color: white; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; font-family: inherit; }
-.btn-permanent:hover { background: #ef4444; }
+.profile-card .btn-delete:hover {
+    background: radial-gradient(circle at top, rgba(239,68,68,1), rgba(220,38,38,1));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(220,38,38,0.5);
+}
+.up-empty {
+    text-align: center;
+    padding: 64px 32px;
+    background: radial-gradient(circle at top, rgba(55,65,81,0.6), rgba(15,23,42,0.8));
+    border-radius: 20px;
+    color: #9ca3af;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 2px dashed rgba(148,163,184,0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(15,23,42,0.6);
+}
+.up-empty a {
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+.up-empty a:hover {
+    color: #93c5fd;
+}
+.up-trash-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: radial-gradient(circle at top, rgba(75,85,99,0.9), rgba(55,65,81,0.9));
+    color: #fbbf24;
+    border: 1px solid rgba(251,191,36,0.4);
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(75,85,99,0.4);
+}
+.up-trash-btn:hover {
+    background: radial-gradient(circle at top, rgba(107,114,128,0.95), rgba(75,85,99,0.95));
+    border-color: rgba(251,191,36,0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(75,85,99,0.5);
+}
+.up-trash-badge {
+    background: radial-gradient(circle at top, rgba(220,38,38,1), rgba(185,28,28,1));
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(220,38,38,0.4);
+}
+.up-trash-section {
+    margin-top: 28px;
+    padding: 24px;
+    border-radius: 20px;
+    background: radial-gradient(circle at top, rgba(15,23,42,0.8), rgba(15,23,42,0.6));
+    border: 1px solid rgba(251,191,36,0.3);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 16px 50px rgba(15,23,42,0.8);
+}
+.trash-card {
+    opacity: 0.98;
+    border-left: 4px solid rgba(251,191,36,0.6);
+}
+.trash-deleted-at {
+    font-size: 0.85rem;
+    color: #fbbf24;
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(251,191,36,0.1);
+    border-radius: 8px;
+    display: inline-block;
+    font-weight: 600;
+}
+.btn-restore {
+    padding: 12px 20px;
+    background: radial-gradient(circle at top, rgba(5,150,105,1), rgba(4,120,87,1));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(5,150,105,0.4);
+    border: 1px solid rgba(167,243,208,0.3);
+}
+.btn-restore:hover {
+    background: radial-gradient(circle at top, rgba(16,185,129,1), rgba(5,150,105,1));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(5,150,105,0.5);
+}
+.btn-permanent {
+    padding: 12px 20px;
+    background: radial-gradient(circle at top, rgba(220,38,38,1), rgba(185,28,28,1));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(220,38,38,0.4);
+    border: 1px solid rgba(254,202,202,0.3);
+}
+.btn-permanent:hover {
+    background: radial-gradient(circle at top, rgba(239,68,68,1), rgba(220,38,38,1));
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(220,38,38,0.5);
+}
 @media (max-width: 768px) {
     .up-theme .container { padding: 0 16px; max-width: 100%; }
     .up-header { flex-direction: column; align-items: flex-start; }
@@ -51,7 +306,7 @@
     .profile-card .row > div { min-width: 100% !important; }
     .profile-card .actions { flex-direction: column; }
     .profile-card .actions a, .profile-card .actions form { width: 100%; }
-    .profile-card .btn-order, .profile-card .btn-delete { width: 100%; text-align: center; display: inline-block; }
+    .profile-card .btn-order, .profile-card .btn-edit, .profile-card .btn-delete { width: 100%; text-align: center; display: inline-block; }
 }
 {% endblock %}
 {% block content %}
@@ -59,9 +314,11 @@
 <div class="container">
     <div class="up-header">
         <div>
-            <a href="{% url 'management_dashboard' %}" class="up-back" title="ড্যাশবোর্ডে ফিরে যান">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-            </a>
+            <div class="up-nav-wrap">
+                <a href="{% url 'management_dashboard' %}" class="up-home" title="Admin ড্যাশবোর্ড">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </a>
+            </div>
             <h1 style="margin-top: 12px;">User Profiles</h1>
         </div>
         <button type="button" class="up-trash-btn" id="trashToggleBtn" title="মুছে ফেলা প্রোফাইল">
@@ -82,6 +339,7 @@
         </div>
         <div class="actions">
             <a href="{% url 'user_profile_detail' profile.user_id %}" class="btn-order">See Profiles & Order History</a>
+            <a href="{% url 'edit_user_profile' profile.user_id %}" class="btn-edit">Edit</a>
             <form method="post" action="{% url 'soft_delete_profile' profile.user_id %}" style="display: inline;" onsubmit="return confirm('এই প্রোফাইল ট্র্যাশে পাঠাতে চান?');">
                 {% csrf_token %}
                 <button type="submit" class="btn-delete">Delete (ট্র্যাশে পাঠান)</button>
@@ -94,8 +352,8 @@
     </div>
 
     <div id="trashSection" class="up-trash-section" style="display: none;">
-        <h3 style="margin: 0 0 16px 0; color: #fbbf24;">🗑️ মুছে ফেলা প্রোফাইল</h3>
-        <p style="margin-bottom: 16px; color: #9ca3af; font-size: 0.9rem;">প্রোফাইল পুনরুদ্ধার বা স্থায়ীভাবে মুছুন</p>
+        <h3 style="margin: 0 0 18px 0; color: #fbbf24; font-size: 1.3rem; font-weight: 900; letter-spacing: 0.02em; text-transform: uppercase;">🗑️ মুছে ফেলা প্রোফাইল</h3>
+        <p style="margin-bottom: 20px; color: #d1d5db; font-size: 0.95rem; font-weight: 500;">প্রোফাইল পুনরুদ্ধার বা স্থায়ীভাবে মুছুন</p>
         {% for profile in trash_profiles %}
         <div class="profile-card trash-card">
             <div class="row">

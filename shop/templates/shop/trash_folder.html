@@ -2,11 +2,28 @@
 {% block title %}Trash - EasyShop{% endblock %}
 {% block extra_css %}
 .trash-theme { background: linear-gradient(180deg, #0f172a 0%, #1e293b 40%, #1f2937 100%) !important; min-height: 100vh; background-attachment: fixed; color: white; }
-.trash-theme .container { max-width: 800px; }
+.trash-theme .container { max-width: 800px; margin: 0 auto; padding: 20px 24px; }
 .trash-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; flex-wrap: wrap; gap: 12px; }
 .trash-header h1 { font-size: 1.4rem; margin: 0; }
-.trash-back { color: #60a5fa; text-decoration: none; font-weight: 600; }
-.trash-back:hover { text-decoration: underline; }
+.trash-nav-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.trash-home {
+    width: 46px; height: 46px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    color: #93c5fd; text-decoration: none;
+    background: rgba(59, 130, 246, 0.25);
+    border: 1px solid rgba(96, 165, 250, 0.5);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.trash-home:hover {
+    background: rgba(59, 130, 246, 0.4);
+    border-color: rgba(96, 165, 250, 0.8);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3);
+}
+.trash-home svg { width: 22px; height: 22px; display: block; }
 .trash-card {
     background: #374151;
     border-radius: 12px;
@@ -44,7 +61,11 @@
 <div class="container">
     <div class="trash-header">
         <div>
-            <a href="{% url 'user_profiles' %}" class="trash-back">← User Profiles এ ফিরে যান</a>
+            <div class="trash-nav-wrap">
+                <a href="{% url 'management_dashboard' %}" class="trash-home" title="Admin ড্যাশবোর্ড">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </a>
+            </div>
             <h1 style="margin-top: 12px;">🗑️ Trash Folder</h1>
         </div>
     </div>

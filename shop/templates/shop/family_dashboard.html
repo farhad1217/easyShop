@@ -50,7 +50,7 @@
                 {% if delivered_lists %}
                 <div class="folder-lists folder-lists-delivered folder-cards">
                     {% for list in delivered_lists %}
-                    <div class="list-card folder-list-card">
+                    <div class="list-card list-card-delivered folder-list-card">
                         <div class="list-card-main">
                             <span class="list-icon">📄</span>
                             <div class="list-info">
@@ -60,9 +60,7 @@
                                 <span class="list-date"><span class="list-datetime">{% if list.delivered_at %}{{ list.delivered_at|date_card }}{% else %}{{ list.created_at|date_card }}{% endif %}</span></span>
                             </div>
                         </div>
-                        <div class="list-actions">
-                            <a href="#" class="action-btn comment-btn open-comment-modal" title="মন্তব্য" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
-                        </div>
+                        {# Message icon hidden for delivered history #}
                     </div>
                     {% endfor %}
                 </div>
@@ -71,11 +69,11 @@
                 {% endif %}
             </div>
             <div class="folder-card declined-folder collapsed">
-                <h4 class="folder-title folder-title-click" data-folder="declined" tabindex="0">Declined <span class="folder-count">{{ declined_lists|length }}</span> <span class="folder-chevron">▼</span></h4>
+            <h4 class="folder-title folder-title-click" data-folder="declined" tabindex="0">Cancelled <span class="folder-count">{{ declined_lists|length }}</span> <span class="folder-chevron">▼</span></h4>
                 {% if declined_lists %}
                 <div class="folder-lists folder-lists-declined folder-cards">
                     {% for list in declined_lists %}
-                    <div class="list-card folder-list-card">
+                    <div class="list-card list-card-declined folder-list-card">
                         <div class="list-card-main">
                             <span class="list-icon">📄</span>
                             <div class="list-info">
@@ -85,14 +83,12 @@
                                 <span class="list-date"><span class="list-datetime">{% if list.declined_at %}{{ list.declined_at|date_card }}{% else %}{{ list.created_at|date_card }}{% endif %}</span></span>
                             </div>
                         </div>
-                        <div class="list-actions">
-                            <a href="#" class="action-btn comment-btn open-comment-modal" title="মন্তব্য" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
-                        </div>
+                        {# Message icon hidden for declined history #}
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <p class="folder-empty">এখনও প্রত্যাখ্যান লিস্ট নেই।</p>
+                <p class="folder-empty">এখনও CANCELLED লিস্ট নেই।</p>
                 {% endif %}
             </div>
         </div>
@@ -100,25 +96,32 @@
 
     <div class="list-history">
         <h3 class="history-title">লিস্ট হিস্টোরি</h3>
-        {% if lists %}
+        {% if lists_with_status %}
         <div class="list-cards">
-            {% for list in lists %}
+            {% for list, flow_status in lists_with_status %}
             <div class="list-card list-card-{{ list.status }}">
                 <div class="list-card-main">
                     <span class="list-icon">📄</span>
                     <div class="list-info">
-                        <span class="list-id">{{ list.list_id }}</span>
-                        <span class="list-content-preview list-preview-click" data-list-id="{{ list.list_id }}" title="বিস্তারিত দেখতে ক্লিক করুন">{{ list.content|truncatechars:50|default:"-" }}</span>
+                        <div class="list-id-row">
+                            <span class="list-id">{{ list.list_id }}</span>
+                            <span class="list-date"><span class="list-datetime">{{ list.created_at|date_card }}</span></span>
+                        </div>
+                        <span class="list-content-preview list-content-preview-2line list-preview-click" data-list-id="{{ list.list_id }}" title="বিস্তারিত দেখতে ক্লিক করুন">{{ list.content|first_three_preview|linebreaksbr }}</span>
                         <template class="list-full-content" data-list-id="{{ list.list_id }}">{{ list.content|numbered_list|linebreaksbr }}</template>
-                        <span class="list-date"><span class="list-datetime">{{ list.created_at|date_card }}</span></span>
+                        <div class="list-subtext">{% if flow_status %}{{ flow_status }}{% endif %}</div>
+                        {% if list.status != 'approved' %}
                         <span class="status-badge status-{{ list.status }} status-one-line">{{ list.note|default:list.get_status_display }}</span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="list-actions">
-                    <a href="#" class="action-btn comment-btn open-comment-modal" title="মন্তব্য" data-comment-url="{% url 'list_comment_thread' list.pk %}?embed=1">💬</a>
-                    {% if list.status == 'pending' %}
+                    {# Edit/Delete শুধু যখন list status pending/approved এবং flow status "Approved"/"Pending" — "Preparing for delivery..." ইত্যাদি থাকলে দেখাবে না #}
+                    {% if list.status == 'pending' or list.status == 'approved' %}
+                        {% if not flow_status or flow_status == 'Approved' or flow_status == 'Pending' %}
                     <a href="{% url 'update_market_list' list.pk %}" class="action-btn edit-btn" title="আপডেট">✏️</a>
-                    <a href="{% url 'delete_market_list' list.pk %}" class="action-btn delete-btn delete-list-btn" title="মুছুন" data-pk="{{ list.pk }}">🗑️</a>
+                    <a href="{% url 'delete_market_list' list.pk %}" class="action-btn delete-btn" title="ডিলিট" onclick="return confirm('লিস্টটি মুছে ফেলতে চান?');">🗑️</a>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
@@ -130,6 +133,33 @@
     </div>
 </div>
 
+<style>
+.list-flow-status-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, rgba(37,99,235,0.25) 0%, rgba(59,130,246,0.2) 100%);
+    border: 1px solid rgba(96,165,250,0.5);
+    color: #2563eb;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.list-subtext {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #2563eb;
+    margin-top: 8px;
+}
+.list-subtext:not(:empty) {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 6px;
+    background: rgba(37, 99, 235, 0.08);
+    border-left: 3px solid #3b82f6;
+}
+</style>
+
 <div id="listDetailModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
@@ -137,17 +167,6 @@
             <button type="button" class="modal-close" aria-label="বন্ধ">&times;</button>
         </div>
         <div class="modal-body" id="modalListContent"></div>
-    </div>
-</div>
-
-<div id="deleteConfirmModal" class="modal-overlay">
-    <div class="modal-box modal-delete">
-        <div class="modal-body modal-delete-body">
-            <div class="modal-delete-actions">
-                <button type="button" class="btn btn-outline modal-cancel">No</button>
-                <a href="#" id="deleteConfirmBtn" class="btn btn-primary">Yes</a>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -176,11 +195,6 @@
 .modal-overlay.active { display: flex; }
 .modal-box { background: white; border-radius: 16px; max-width: 480px; width: 100%; max-height: 80vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 .modal-box.modal-sm { max-width: 320px; }
-.modal-box.modal-delete { max-width: 220px; padding: 0; }
-.modal-delete-body { padding: 12px 16px; text-align: center; }
-.modal-delete-body p { margin: 0; }
-.modal-delete-actions { display: flex; gap: 8px; justify-content: center; }
-.modal-delete-actions .btn { padding: 6px 14px; font-size: 0.85rem; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e5e7eb; }
 .modal-header h3 { margin: 0; font-size: 1.1rem; }
 .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6b7280; line-height: 1; padding: 0 4px; }
@@ -268,25 +282,56 @@
     gap: 8px;
 }
 .btn-send:hover { background: var(--primary-dark); }
-.list-history { margin-top: 24px; }
-.history-title { margin-bottom: 16px; font-size: 1.2rem; }
-.list-cards { display: flex; flex-direction: column; gap: 12px; }
+.list-history { margin-top: 28px; }
+.history-title { margin-bottom: 20px; font-size: 1.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.02em; }
+.list-cards { display: flex; flex-direction: column; gap: 14px; }
 .list-card {
     background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.04);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
-.list-card-pending { border-left: 4px solid #eab308; background: linear-gradient(90deg, #fefce8 0%, #fff 12%); }
-.list-card-approved { border-left: 4px solid #2563eb; background: linear-gradient(90deg, #eff6ff 0%, #fff 12%); }
-.list-card-main { display: flex; align-items: center; gap: 12px; flex: 1; }
-.list-icon { font-size: 1.5rem; }
-.list-info { display: flex; flex-direction: column; gap: 2px; }
-.list-id { font-weight: 700; font-size: 0.9rem; }
-.list-content-preview { color: #4b5563; font-size: 0.95rem; cursor: pointer; }
+.list-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+}
+.list-card-pending { border-left: 4px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fff 22%); }
+.list-card-approved { border-left: 4px solid #2563eb; background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 25%, #fff 40%); }
+.list-card-delivered { border-left: 4px solid #059669; background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 20%, #fff 35%); }
+.list-card-declined { border-left: 4px solid #dc2626; background: linear-gradient(135deg, #fef2f2 0%, #fef2f2 20%, #fff 35%); }
+.list-card-main { display: flex; align-items: center; gap: 14px; flex: 1; }
+.list-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    border: 1px solid rgba(148,163,184,0.3);
+}
+.list-card-approved .list-icon { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border-color: rgba(96,165,250,0.4); }
+.list-card-pending .list-icon { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-color: rgba(245,158,11,0.3); }
+.list-card-delivered .list-icon { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border-color: rgba(16,185,129,0.3); }
+.list-card-declined .list-icon { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-color: rgba(220,38,38,0.25); }
+.list-info { display: flex; flex-direction: column; gap: 4px; }
+.list-id-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.list-id-row .list-datetime { background: none; border: none; box-shadow: none; padding: 0; color: #64748b; font-weight: 500; font-size: 0.82rem; }
+.list-id { font-weight: 800; font-size: 1rem; color: #1e293b; letter-spacing: 0.01em; }
+.list-content-preview { color: #475569; font-size: 0.92rem; cursor: pointer; line-height: 1.45; }
+.list-content-preview-2line {
+    display: block;
+    overflow: hidden;
+    max-height: 2.9em;
+    line-height: 1.45;
+}
 .list-content-preview:hover { color: var(--primary); text-decoration: underline; }
 .list-date { font-size: 0.8rem; }
 .list-datetime {
@@ -302,44 +347,100 @@
 }
 .folder-meta .list-datetime { font-size: 0.75rem; padding: 3px 8px; }
 .status-badge {
-    padding: 4px 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
     font-weight: 600;
+    line-height: 1.2;
 }
 .status-pending { background: #f3f4f6; color: #4b5563; }
 .status-approved { background: #dbeafe; color: #1e40af; }
 .status-delivered { background: #d1fae5; color: #065f46; }
 .status-declined { background: #fee2e2; color: #991b1b; }
 .list-actions { display: flex; gap: 8px; }
-.action-btn { padding: 6px 10px; border-radius: 8px; text-decoration: none; }
-.edit-btn { background: #dbeafe; }
-.delete-btn { background: #fee2e2; }
+.action-btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.action-btn:hover { transform: scale(1.05); }
+.edit-btn { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af; border: 1px solid rgba(59,130,246,0.3); }
+.edit-btn:hover { box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
+.delete-btn { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; border: 1px solid rgba(220,38,38,0.2); }
+.delete-btn:hover { box-shadow: 0 2px 8px rgba(220,38,38,0.2); }
 .comment-btn { background: #d1fae5; color: #065f46; }
-.no-lists { color: #6b7280; text-align: center; padding: 24px; }
-.history-folders { margin-top: 20px; margin-bottom: 24px; }
-.history-folders-stacked .folder-row { display: flex; flex-direction: column; gap: 12px; }
-.folder-cards { display: flex; flex-direction: column; gap: 10px; max-height: 200px; overflow-y: auto; }
-.folder-list-card { margin: 0; }
-.folder-card { background: white; border-radius: 10px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-.delivered-folder { border-top: 3px solid #059669; }
-.declined-folder { border-top: 3px solid #dc2626; }
-.folder-title { font-size: 0.9rem; margin: 0 0 8px 0; color: #374151; display: flex; align-items: center; gap: 6px; }
-.folder-title-click { cursor: pointer; user-select: none; padding: 4px 0; }
-.folder-title-click:hover { opacity: 0.9; }
+.no-lists {
+    color: #64748b;
+    text-align: center;
+    padding: 32px 24px;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 2px dashed #e2e8f0;
+    font-size: 0.95rem;
+}
+.history-folders { margin-top: 24px; margin-bottom: 28px; }
+.history-folders-stacked .folder-row { display: flex; flex-direction: column; gap: 14px; }
+.folder-cards { display: flex; flex-direction: column; gap: 12px; max-height: 220px; overflow-y: auto; }
+.folder-list-card {
+    margin: 0;
+    padding: 16px 18px;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.folder-list-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
+}
+.folder-list-card .list-icon { width: 40px; height: 40px; font-size: 1.25rem; }
+.folder-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06), 0 0 1px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.delivered-folder { border-top: 4px solid #059669; }
+.declined-folder { border-top: 4px solid #dc2626; }
+.folder-title { font-size: 1rem; font-weight: 700; margin: 0 0 12px 0; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+.folder-title-click { cursor: pointer; user-select: none; padding: 6px 0; transition: opacity 0.2s ease; }
+.folder-title-click:hover { opacity: 0.85; }
 .folder-chevron { font-size: 0.7rem; margin-left: 4px; transition: transform 0.25s ease; }
 .folder-card.collapsed .folder-chevron { transform: rotate(-90deg); }
 .folder-card.collapsed .folder-lists { display: none !important; }
-.folder-count { background: #e5e7eb; color: #4b5563; font-size: 0.75rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; padding: 0 6px; }
-.delivered-folder .folder-count { background: #d1fae5; color: #065f46; }
-.declined-folder .folder-count { background: #fee2e2; color: #991b1b; }
+.folder-count {
+    font-size: 0.8rem;
+    font-weight: 700;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+}
+.delivered-folder .folder-count { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; }
+.declined-folder .folder-count { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; }
 .folder-lists { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; }
 .folder-list-item { padding: 8px 10px; background: #f9fafb; border-radius: 6px; font-size: 0.85rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; }
 .folder-serial { font-weight: 700; color: #6b7280; flex-shrink: 0; }
 .folder-list-item .list-content-preview { flex: 1; min-width: 0; }
 .folder-meta { font-size: 0.75rem; color: #9ca3af; }
 .folder-comment-btn { font-size: 0.9rem; padding: 2px 6px; margin-left: auto; }
-.folder-empty { color: #9ca3af; font-size: 0.8rem; padding: 8px 0; margin: 0; }
+.folder-empty {
+    color: #64748b;
+    font-size: 0.9rem;
+    padding: 20px 16px;
+    margin: 0;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 2px dashed #e2e8f0;
+}
 .status-one-line { white-space: nowrap; display: inline-block; margin-top: 4px; }
 @media (max-width: 768px) {
     .family-dashboard { max-width: 100%; padding: 0; }
@@ -374,14 +475,9 @@
         toast.textContent = 'লিস্ট সফলভাবে পাঠানো হয়েছে!';
         toast.className = 'toast show success';
         setTimeout(function(){ toast.classList.remove('show'); history.replaceState({}, '', window.location.pathname); }, 2500);
-    } else if (t === 'deleted') {
-        toast.textContent = 'লিস্ট মুছে ফেলা হয়েছে!';
-        toast.className = 'toast show success';
-        setTimeout(function(){ toast.classList.remove('show'); history.replaceState({}, '', window.location.pathname); }, 2500);
     }
 
     var detailModal = document.getElementById('listDetailModal');
-    var deleteModal = document.getElementById('deleteConfirmModal');
     document.querySelectorAll('.list-preview-click').forEach(function(el) {
         el.addEventListener('click', function() {
             var id = this.getAttribute('data-list-id');
@@ -396,18 +492,6 @@
     });
     detailModal.addEventListener('click', function(e) {
         if (e.target === detailModal) detailModal.classList.remove('active');
-    });    document.querySelectorAll('.delete-list-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('deleteConfirmBtn').href = this.href;
-            deleteModal.classList.add('active');
-        });
-    });
-    document.querySelector('.modal-cancel').addEventListener('click', function() {
-        deleteModal.classList.remove('active');
-    });
-    document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
-        if (e.target === deleteModal) deleteModal.classList.remove('active');
     });
     document.querySelectorAll('.folder-title-click').forEach(function(title) {
         title.addEventListener('click', function() {
@@ -445,7 +529,15 @@
             textarea.value = lines.join('\n');
         }
         textarea.addEventListener('blur', cleanContent);
-        form.addEventListener('submit', function() { cleanContent(); });
+        form.addEventListener('submit', function(e) {
+            cleanContent();
+            if (!textarea.value.trim()) {
+                e.preventDefault();
+                alert('বাজার লিস্ট খালি থাকলে জমা দেওয়া যাবে না। কিছু লিখুন।');
+                textarea.focus();
+                return;
+            }
+        });
     })();
 </script>
 {% endblock %}

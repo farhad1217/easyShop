@@ -1,0 +1,35 @@
+{% extends 'shop/base.html' %}
+{% block title %}Edit List {{ market_list.list_id }} - EasyShop{% endblock %}
+{% block content %}
+<div class="container" style="max-width: 640px; margin: 24px auto;">
+    <div class="card" style="padding: 24px;">
+        <h2 style="margin-bottom: 20px;">✏️ Edit List ({{ market_list.list_id }})</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-weight: 600; margin-bottom: 6px;">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<p style="color: #dc2626; font-size: 0.9rem; margin-top: 4px;">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a href="{% url 'management_dashboard' %}?filter={{ back_filter }}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    .card textarea, .card input[type="text"] {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+    .card textarea { min-height: 120px; }
+</style>
+{% endblock %}
